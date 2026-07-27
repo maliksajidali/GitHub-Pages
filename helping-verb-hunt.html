@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Helping Verb Hunt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#EAF6F0; --sand-dark:#D3ECE0;
+    --deep:#0F3D2E; --teal:#1B6B52;
+    --mint:#3FBF8F; --mint-light:#9BE3C6;
+    --sun:#FFD166; --sun-dark:#F0A93B;
+    --coral:#EF6461; --white:#FFFFFF;
+    --shadow: 0 6px 0 rgba(15,61,46,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(63,191,143,0.25), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255,209,102,0.25), transparent 45%),
+      var(--sand);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(24px,6.6vw,34px); margin:0;}
+  .title span{color:var(--mint);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--teal); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:var(--white); border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:var(--shadow); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--sand); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--mint); color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--teal); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:white; background:var(--teal); display:inline-block; padding:5px 14px; border-radius:20px; align-self:flex-start; margin-bottom:14px;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--sand-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--mint);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--sand); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--mint); color:white; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:white; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; height:22px; margin-top:14px; color:var(--teal);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--teal); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:var(--white); color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--teal); opacity:0.65; font-weight:700;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Helping Verb <span>Hunt</span> 🔍</h1>
+    <div class="subtitle">10 missions &middot; track down the right helper</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Find the helping verb that completes the sentence 🕵️</footer>
+</div>
+
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function uniq4(correct, decoyPool){
+  const decoys = shuffle(decoyPool.filter(d=>d!==correct)).slice(0,3);
+  return shuffle([correct, ...decoys]);
+}
+
+const subjects = [
+  {text:'I', cat:'1st'}, {text:'You', cat:'other'}, {text:'He', cat:'3rd'}, {text:'She', cat:'3rd'},
+  {text:'We', cat:'other'}, {text:'They', cat:'other'}, {text:'The monkey', cat:'3rd'}, {text:'The tiger', cat:'3rd'},
+  {text:'My friends', cat:'other'}, {text:'The children', cat:'other'}
+];
+const ingList = ['playing in the park','watching a movie','reading a book','singing a song','running in the field','eating lunch','drawing a picture','washing the dishes','riding a bike','cleaning the house'];
+const ppList = ['finished the homework','eaten the food','written the letter','gone to school','cleaned the room','painted the wall','closed the door','opened the box','cooked the dinner','fixed the bike'];
+
+function genBePresent(){
+  const subj = pickRandom(subjects);
+  const ing = pickRandom(ingList);
+  const correct = subj.cat==='1st' ? 'am' : subj.cat==='3rd' ? 'is' : 'are';
+  return { sentence:`${subj.text} <span class="blank">___</span> ${ing}.`, correct, opts: uniq4(correct, ['am','is','are','was']) };
+}
+function genBePast(){
+  const subj = pickRandom(subjects);
+  const ing = pickRandom(ingList);
+  const correct = (subj.cat==='3rd'||subj.cat==='1st') ? 'was' : 'were';
+  return { sentence:`${subj.text} <span class="blank">___</span> ${ing} yesterday.`, correct, opts: uniq4(correct, ['was','were','is','will be']) };
+}
+function genHasHave(){
+  const subj = pickRandom(subjects);
+  const pp = pickRandom(ppList);
+  const correct = subj.cat==='3rd' ? 'has' : 'have';
+  return { sentence:`${subj.text} <span class="blank">___</span> ${pp} already.`, correct, opts: uniq4(correct, ['has','have','had','is']) };
+}
+function genHad(){
+  const subj = pickRandom(subjects);
+  const pp = pickRandom(ppList);
+  return { sentence:`${subj.text} <span class="blank">___</span> ${pp} before I arrived.`, correct:'had', opts: uniq4('had', ['had','has','have','was']) };
+}
+function genDoDoes(){
+  const subj = pickRandom(subjects);
+  const verbs = ['like spinach','enjoy swimming','want to play','like loud music','know the answer'];
+  const v = pickRandom(verbs);
+  const correct = subj.cat==='3rd' ? 'does' : 'do';
+  return { sentence:`${subj.text} <span class="blank">___</span> not ${v}.`, correct, opts: uniq4(correct, ['do','does','did','is']) };
+}
+function genWill(){
+  const subj = pickRandom(subjects);
+  const acts = ['arrive tomorrow','finish the race soon','visit us next week','call you later','win the match'];
+  const v = pickRandom(acts);
+  return { sentence:`${subj.text} <span class="blank">___</span> ${v}.`, correct:'will', opts: uniq4('will', ['will','shall','can','would']) };
+}
+function genCanCould(){
+  const subj = pickRandom(subjects);
+  const presentActs = ['swim very fast','climb tall trees','solve this puzzle','speak two languages'];
+  const pastActs = ['swim very fast when she was young','climb trees when he was a boy','sing beautifully as a child'];
+  const isPast = Math.random()<0.5;
+  const correct = isPast ? 'could' : 'can';
+  const v = pickRandom(isPast ? pastActs : presentActs);
+  return { sentence:`${subj.text} <span class="blank">___</span> ${v}.`, correct, opts: uniq4(correct, ['can','could','will','must']) };
+}
+function genShouldWould(){
+  const subj = pickRandom(subjects);
+  const advice = ['practice every day','drink more water','listen to the teacher','wear a helmet'];
+  const cond = ['ask for help if I were you','choose the blue one','wait for the bus'];
+  const isCond = Math.random()<0.5;
+  const correct = isCond ? 'would' : 'should';
+  const v = pickRandom(isCond ? cond : advice);
+  const sentence = isCond ? `If I were you, ${subj.text.toLowerCase()==='i'?'I':subj.text} <span class="blank">___</span> ${v}.`
+                           : `${subj.text} <span class="blank">___</span> ${v}.`;
+  return { sentence, correct, opts: uniq4(correct, ['should','would','must','can']) };
+}
+
+const mustMayMight = [
+  {text:'You <span class="blank">___</span> wear a seatbelt in the car.', correct:'must'},
+  {text:'She <span class="blank">___</span> be at home now — her light is on.', correct:'might'},
+  {text:'All students <span class="blank">___</span> submit their homework on time.', correct:'must'},
+  {text:'It <span class="blank">___</span> rain later, the sky looks cloudy.', correct:'may'},
+  {text:'He <span class="blank">___</span> know the answer — he studied a lot.', correct:'might'},
+  {text:'Visitors <span class="blank">___</span> not feed the animals.', correct:'must'},
+  {text:'We <span class="blank">___</span> go to the beach if the weather is nice.', correct:'may'},
+  {text:'You <span class="blank">___</span> finish your vegetables before dessert.', correct:'must'},
+  {text:'They <span class="blank">___</span> arrive late because of traffic.', correct:'might'},
+  {text:'Passengers <span class="blank">___</span> keep their seatbelts fastened.', correct:'must'}
+];
+function mustMayMightOpts(correct){ return uniq4(correct, ['must','may','might','should']); }
+
+const missions = [
+  {title:"Tall Grass", diff:"Easy", badge:"🥉", emoji:"🌿", gen:genBePresent},
+  {title:"Old Footprints", diff:"Easy", badge:"🥉", emoji:"🐾", gen:genBePast},
+  {title:"Treasure Chest", diff:"Easy-Medium", badge:"🥈", emoji:"📦", gen:genHasHave},
+  {title:"Buried Clue", diff:"Medium", badge:"🥈", emoji:"🗝️", gen:genHad},
+  {title:"Hidden Trail", diff:"Medium", badge:"🥈", emoji:"🧭", gen:genDoDoes},
+  {title:"Signal Tower", diff:"Medium-Hard", badge:"🥇", emoji:"📡", gen:genWill},
+  {title:"Rope Bridge", diff:"Hard", badge:"🥇", emoji:"🌉", gen:genCanCould},
+  {title:"Advisor's Camp", diff:"Hard", badge:"🥇", emoji:"🏕️", gen:genShouldWould},
+  {title:"Foggy Outpost", diff:"Very Hard", badge:"💎", emoji:"🌁", gen:'mustList'},
+  {title:"Detective's Peak", diff:"Expert", badge:"👑", emoji:"🔎", gen:'mixed'}
+];
+const allGens = [genBePresent, genBePast, genHasHave, genHad, genDoDoes, genWill, genCanCould, genShouldWould];
+
+function generateQuestions(mission){
+  if(mission.gen === 'mustList'){
+    return shuffle(mustMayMight).map(item => ({ sentence:item.text, correct:item.correct, opts: mustMayMightOpts(item.correct) }));
+  }
+  if(mission.gen === 'mixed'){
+    const qs = [];
+    for(let i=0;i<9;i++){ qs.push(pickRandom(allGens)()); }
+    const mm = pickRandom(mustMayMight);
+    qs.push({ sentence:mm.text, correct:mm.correct, opts: mustMayMightOpts(mm.correct) });
+    return shuffle(qs);
+  }
+  const qs = [];
+  const seen = new Set();
+  let guard = 0;
+  while(qs.length < 10 && guard < 200){
+    guard++;
+    const q = mission.gen();
+    if(seen.has(q.sentence)) continue;
+    seen.add(q.sentence);
+    qs.push(q);
+  }
+  return qs;
+}
+
+let progress = missions.map(()=>({unlocked:false, done:false, stars:0}));
+progress[0].unlocked = true;
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: generateQuestions(missions[i]) };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  card.innerHTML = `
+    <div class="stop-label">MISSION ${session.missionIdx+1}: ${m.title.toUpperCase()} — ${session.qIdx+1}/${session.questions.length}</div>
+    <div class="progress-dots">${dots}</div>
+    <div class="word-emoji">${m.emoji}</div>
+    <div class="question">${q.sentence}</div>
+    <div class="options" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(opt, q.correct, btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(["Found it! 🎉","Great detective work! 🔍","Nice one! 🌟","Correct! 🕵️"]);
+    feedback.style.color = "#1B6B52";
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}`;
+    feedback.style.color = "#EF6461";
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, 1200);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  let stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Hunt Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">Helping Verb Champion!</div>
+      <div class="end-sub">You completed all 10 missions of Helping Verb Hunt</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = missions.map(()=>({unlocked:false, done:false, stars:0})); progress[0].unlocked = true; renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = ['🎉','⭐','🍃','🔍'];
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = ['🎉','⭐','🍃','🔍','🏆','🌟'];
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

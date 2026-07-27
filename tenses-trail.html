@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tenses Trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#FFF4E6; --sand-dark:#FDE6C8;
+    --sky-deep:#1E3A5F; --sky:#2E5A8F;
+    --wing:#5DA9E9; --wing-light:#A9D4F5;
+    --sun:#FFC94A; --sun-dark:#F5A623;
+    --coral:#FF6B6B; --white:#FFFFFF;
+    --shadow: 0 6px 0 rgba(30,58,95,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(93,169,233,0.25), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255,201,74,0.25), transparent 45%),
+      var(--sand);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--sky-deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--wing);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--sky); opacity:0.75; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:var(--white); border-radius:26px; padding:24px; border:3px solid var(--sky-deep); box-shadow:var(--shadow); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--sand); border:3px solid var(--sky-deep); border-radius:18px; padding:12px 14px; cursor:pointer; transition:transform 0.1s;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--wing); color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--sky); opacity:0.7; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:white; background:var(--sky); display:inline-block; padding:5px 14px; border-radius:20px; align-self:flex-start; margin-bottom:14px;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--sand-dark); border:2px solid var(--sky-deep);}
+  .dot.filled{background:var(--wing);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:15px; padding:14px 8px; border-radius:16px; border:3px solid var(--sky-deep); background:var(--sand); color:var(--sky-deep); cursor:pointer; box-shadow:0 4px 0 var(--sky-deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s; word-break:break-word;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--sky-deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--wing); color:white; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:white; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; height:22px; margin-top:14px; color:var(--sky);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--sky); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--sky-deep); border:3px solid var(--sky-deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:var(--white); color:var(--sky-deep); border:3px solid var(--sky-deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--sky); opacity:0.6; font-weight:700;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Tenses <span>Trail</span> 🦅</h1>
+    <div class="subtitle">10 missions &middot; master every tense</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Pick the verb form that fits the sentence 🪶</footer>
+</div>
+
+<script>
+const verbs = {
+  play:{base:'play',s:'plays',past:'played',pp:'played',ing:'playing',obj:'the guitar'},
+  watch:{base:'watch',s:'watches',past:'watched',pp:'watched',ing:'watching',obj:'a movie'},
+  jump:{base:'jump',s:'jumps',past:'jumped',pp:'jumped',ing:'jumping',obj:'over the log'},
+  run:{base:'run',s:'runs',past:'ran',pp:'run',ing:'running',obj:'in the field'},
+  eat:{base:'eat',s:'eats',past:'ate',pp:'eaten',ing:'eating',obj:'a banana'},
+  write:{base:'write',s:'writes',past:'wrote',pp:'written',ing:'writing',obj:'a letter'},
+  go:{base:'go',s:'goes',past:'went',pp:'gone',ing:'going',obj:'to the market'},
+  sing:{base:'sing',s:'sings',past:'sang',pp:'sung',ing:'singing',obj:'a song'},
+  swim:{base:'swim',s:'swims',past:'swam',pp:'swum',ing:'swimming',obj:'in the river'},
+  read:{base:'read',s:'reads',past:'read',pp:'read',ing:'reading',obj:'a book'},
+  buy:{base:'buy',s:'buys',past:'bought',pp:'bought',ing:'buying',obj:'a gift'},
+  catch:{base:'catch',s:'catches',past:'caught',pp:'caught',ing:'catching',obj:'the ball'},
+  bring:{base:'bring',s:'brings',past:'brought',pp:'brought',ing:'bringing',obj:'some water'},
+  break:{base:'break',s:'breaks',past:'broke',pp:'broken',ing:'breaking',obj:'the vase'},
+  dance:{base:'dance',s:'dances',past:'danced',pp:'danced',ing:'dancing',obj:'in the rain'}
+};
+const subjects = [
+  {text:'I', cat:'1st'}, {text:'You', cat:'other'}, {text:'He', cat:'3rd'}, {text:'She', cat:'3rd'},
+  {text:'We', cat:'other'}, {text:'They', cat:'other'}, {text:'The monkey', cat:'3rd'}, {text:'The tiger', cat:'3rd'},
+  {text:'My friends', cat:'other'}, {text:'The children', cat:'other'}
+];
+const tenseList = ['simplePresent','simplePast','simpleFuture','presentCont','pastCont','futureCont','presentPerfect','pastPerfect','futurePerfect'];
+const tenseLabels = {
+  simplePresent:'Simple Present', simplePast:'Simple Past', simpleFuture:'Simple Future',
+  presentCont:'Present Continuous', pastCont:'Past Continuous', futureCont:'Future Continuous',
+  presentPerfect:'Present Perfect', pastPerfect:'Past Perfect', futurePerfect:'Future Perfect'
+};
+
+const missions = [
+  {title:"Sunny Meadow", diff:"Easy", badge:"🥉", emoji:"🌼", tense:"simplePresent"},
+  {title:"Yesterday's Nest", diff:"Easy", badge:"🥉", emoji:"🪺", tense:"simplePast"},
+  {title:"Tomorrow's Sky", diff:"Easy-Medium", badge:"🥈", emoji:"🌅", tense:"simpleFuture"},
+  {title:"Windy Ridge", diff:"Medium", badge:"🥈", emoji:"🍃", tense:"presentCont"},
+  {title:"Storm Memory", diff:"Medium", badge:"🥈", emoji:"⛈️", tense:"pastCont"},
+  {title:"Cloud Forecast", diff:"Medium-Hard", badge:"🥇", emoji:"☁️", tense:"futureCont"},
+  {title:"Eagle's Achievement", diff:"Hard", badge:"🥇", emoji:"🦅", tense:"presentPerfect"},
+  {title:"Ancient Flight Path", diff:"Hard", badge:"🥇", emoji:"🗺️", tense:"pastPerfect"},
+  {title:"Future Horizon", diff:"Very Hard", badge:"💎", emoji:"🌠", tense:"futurePerfect"},
+  {title:"Summit of Tenses", diff:"Expert", badge:"👑", emoji:"🏔️", tense:"mixed"}
+];
+
+function buildForm(cat, verbKey, tense){
+  const v = verbs[verbKey];
+  switch(tense){
+    case 'simplePresent': return cat==='3rd' ? v.s : v.base;
+    case 'simplePast': return v.past;
+    case 'simpleFuture': return 'will ' + v.base;
+    case 'presentCont': return (cat==='1st'?'am':cat==='3rd'?'is':'are') + ' ' + v.ing;
+    case 'pastCont': return (cat==='3rd'||cat==='1st'?'was':'were') + ' ' + v.ing;
+    case 'futureCont': return 'will be ' + v.ing;
+    case 'presentPerfect': return (cat==='3rd'?'has':'have') + ' ' + v.pp;
+    case 'pastPerfect': return 'had ' + v.pp;
+    case 'futurePerfect': return 'will have ' + v.pp;
+  }
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function generateQuestions(mission){
+  const qs = [];
+  const usedVerbSubj = new Set();
+  let guard = 0;
+  while(qs.length < 10 && guard < 300){
+    guard++;
+    const subj = pickRandom(subjects);
+    const verbKey = pickRandom(Object.keys(verbs));
+    const key = subj.text+verbKey;
+    if(usedVerbSubj.has(key)) continue;
+    usedVerbSubj.add(key);
+    const targetTense = mission.tense === 'mixed' ? pickRandom(tenseList) : mission.tense;
+    const wrongTenses = shuffle(tenseList.filter(t=>t!==targetTense)).slice(0,3);
+    const correct = buildForm(subj.cat, verbKey, targetTense);
+    const decoys = wrongTenses.map(t=>buildForm(subj.cat, verbKey, t));
+    const opts = shuffle([correct, ...decoys].filter((v,i,a)=>a.indexOf(v)===i));
+    while(opts.length < 4){
+      const extraT = pickRandom(tenseList.filter(t=>t!==targetTense));
+      const extra = buildForm(subj.cat, verbKey, extraT);
+      if(!opts.includes(extra)) opts.push(extra);
+    }
+    qs.push({
+      sentence: `${subj.text} <span class="blank">___</span> ${verbs[verbKey].obj}.`,
+      correct, opts: shuffle(opts.slice(0,4)),
+      tenseLabel: tenseLabels[targetTense]
+    });
+  }
+  return qs;
+}
+
+let progress = missions.map(()=>({unlocked:false, done:false, stars:0}));
+progress[0].unlocked = true;
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: generateQuestions(missions[i]) };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  card.innerHTML = `
+    <div class="stop-label">MISSION ${session.missionIdx+1}: ${m.title.toUpperCase()} — ${session.qIdx+1}/${session.questions.length}</div>
+    <div class="progress-dots">${dots}</div>
+    <div class="word-emoji">${m.emoji}</div>
+    <div class="question">${q.sentence}</div>
+    <div class="options" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(opt, q.correct, btn, q.tenseLabel);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, tenseLabel){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = `Correct! That's ${tenseLabel}. 🎉`;
+    feedback.style.color = "#2E5A8F";
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}`;
+    feedback.style.color = "#FF6B6B";
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, 1200);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  let stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Trail Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">Tense Master!</div>
+      <div class="end-sub">You completed all 10 missions of Tenses Trail</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = missions.map(()=>({unlocked:false, done:false, stars:0})); progress[0].unlocked = true; renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = ['🎉','⭐','🍃','🦋'];
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = ['🎉','⭐','🍃','🦋','🏆','🌟'];
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>
