@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>مترادف الفاظ مہم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --sand:#EEF3FB; --sand-dark:#D7E3F7; --deep:#1E2A5A; --jungle:#33448C; --leaf:#5B72D6; --leaf-light:#AEB9F0; --sun:#FFC94A; --sun-dark:#F0A93B; --coral:#EF6461; --white:#FFFFFF; --shadow: 0 6px 0 rgba(30,42,90,0.18); }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{font-family:'Noto Nastaliq Urdu', serif; background: radial-gradient(circle at 15% 10%, rgba(91,114,214,0.22), transparent 40%), radial-gradient(circle at 85% 90%, rgba(255,201,74,0.22), transparent 45%), var(--sand);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; color:var(--deep); overflow-x:hidden;}
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-weight:700; font-size:clamp(28px,7vw,40px); margin:0;} .title span{color:var(--leaf);}
+  .subtitle{font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; color:var(--jungle); opacity:0.8; letter-spacing:1px; margin-top:4px;}
+  .card{background:var(--white); border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:var(--shadow); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--sand); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;} .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Nunito',sans-serif; font-weight:800; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--leaf); color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;} .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;} .mission-title{font-weight:700; font-size:17px;}
+  .mission-diff{font-family:'Nunito',sans-serif; font-size:11px; font-weight:800; color:var(--jungle); opacity:0.75;}
+  .mission-badge{font-size:26px;} .stars-row{font-size:13px; margin-top:2px;}
+  .stop-label{font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; color:white; background:var(--jungle); display:inline-block; padding:5px 14px; border-radius:20px; align-self:flex-start; margin-bottom:14px;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--sand-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--leaf);} .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .question{font-size:clamp(24px,7vw,30px); font-weight:700; text-align:center; margin:6px 0 28px 0;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .opt{font-family:'Noto Nastaliq Urdu',serif; font-weight:700; font-size:22px; padding:16px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--sand); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);} .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--leaf); color:white; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:white; animation:shake 0.35s ease;} .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Noto Nastaliq Urdu',serif; font-weight:600; font-size:18px; height:26px; margin-top:14px; color:var(--jungle);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;} .end-title{font-size:28px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-family:'Nunito',sans-serif; font-size:14px; color:var(--jungle); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Noto Nastaliq Urdu',serif; font-weight:700; font-size:19px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:12px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Noto Nastaliq Urdu',serif; font-weight:700; font-size:18px; background:var(--white); color:var(--deep); border:3px solid var(--deep); padding:11px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;} .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-family:'Noto Nastaliq Urdu',serif; font-size:15px; color:var(--jungle); opacity:0.7; font-weight:600;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">مترادف <span>الفاظ</span> مہم 📖</h1>
+    <div class="subtitle">10 مشن &middot; ہم معنی لفظ چنیں</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>ہر لفظ کا ہم معنی لفظ چنیں ✨</footer>
+</div>
+
+<script>
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const pairs = [
+  ['ماں','والدہ'],['باپ','والد'],['گھر','مکان'],['راستہ','رستہ'],['خوشی','مسرت'],
+  ['محبت','پیار'],['امید','آس'],['طاقت','زور'],['عزت','احترام'],['دوست','یار'],
+  ['دشمن','مخالف'],['خطرہ','خدشہ'],['دولت','مال'],['سمندر','بحر'],['جنگ','لڑائی'],
+  ['سچ','حق'],['آواز','صدا'],['خوبصورت','حسین'],['بہادر','دلیر'],['غم','دکھ']
+];
+const allWords = pairs.flat();
+
+function genQ(){
+  const pair = pickRandom(pairs);
+  const askFirst = Math.random()<0.5;
+  const word = askFirst ? pair[0] : pair[1];
+  const correct = askFirst ? pair[1] : pair[0];
+  const decoys = shuffle(allWords.filter(w=>w!==correct && w!==word)).slice(0,3);
+  return { sentence:`'${word}' کا ہم معنی لفظ کیا ہے؟`, correct, opts: shuffle([correct, ...decoys]) };
+}
+function genFrom(){
+  const qs=[]; const seen=new Set(); let guard=0;
+  while(qs.length<10 && guard<300){ guard++; const q=genQ(); if(seen.has(q.sentence)) continue; seen.add(q.sentence); qs.push(q); }
+  return qs;
+}
+const missions = [
+  {title:"پہلا قدم", diff:"آسان", badge:"🥉", emoji:"🌼"}, {title:"دوسرا قدم", diff:"آسان", badge:"🥉", emoji:"🍃"},
+  {title:"تیسرا قدم", diff:"درمیانہ", badge:"🥈", emoji:"🌸"}, {title:"چوتھا قدم", diff:"درمیانہ", badge:"🥈", emoji:"🌷"},
+  {title:"پانچواں قدم", diff:"درمیانہ", badge:"🥈", emoji:"🦋"}, {title:"چھٹا قدم", diff:"مشکل", badge:"🥇", emoji:"🐘"},
+  {title:"ساتواں قدم", diff:"مشکل", badge:"🥇", emoji:"🐒"}, {title:"آٹھواں قدم", diff:"مشکل", badge:"🥇", emoji:"🦁"},
+  {title:"نواں قدم", diff:"بہت مشکل", badge:"💎", emoji:"🐆"}, {title:"چوٹی کا مقام", diff:"ماہر", badge:"👑", emoji:"🏔️"}
+];
+let progress = missions.map(()=>({unlocked:false, done:false, stars:0})); progress[0].unlocked=true;
+let session=null; const card=document.getElementById('gameCard');
+function renderMap(){
+  const doneCount=progress.filter(p=>p.done).length; let html=`<div class="map-grid">`;
+  missions.forEach((m,i)=>{ const p=progress[i]; const cls=p.done?'done':(p.unlocked?'':'locked');
+    const icon=p.done?m.badge:(p.unlocked?m.emoji:'🔒'); const stars=p.done?'⭐'.repeat(p.stars)+'☆'.repeat(3-p.stars):'';
+    html += `<div class="mission-row ${cls}" onclick="${p.unlocked?`startMission(${i})`:''}">
+      <div class="mission-num">${i+1}</div><div class="mission-info"><div class="mission-title">${m.title}</div><div class="mission-diff">${m.diff}</div>${stars?`<div class="stars-row">${stars}</div>`:''}</div>
+      <div class="mission-badge">${icon}</div></div>`; });
+  html += `</div>`;
+  if(doneCount===missions.length) html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">اپنی بڑی ٹرافی دیکھیں 🏆</button>`;
+  card.innerHTML = html;
+}
+function startMission(i){ session={missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions:genFrom()}; renderQuestion(); }
+function renderQuestion(){
+  const m=missions[session.missionIdx];
+  if(session.qIdx>=session.questions.length){ renderMissionComplete(); return; }
+  const q=session.questions[session.qIdx]; let dots='';
+  for(let i=0;i<session.questions.length;i++){ let cls='dot'; if(i<session.qIdx) cls += session.wrongDots[i]?' wrong':' filled'; dots+=`<div class="${cls}"></div>`; }
+  card.innerHTML = `<div class="stop-label">مشن ${session.missionIdx+1}: ${m.title} — ${session.qIdx+1}/${session.questions.length}</div>
+    <div class="progress-dots">${dots}</div><div class="word-emoji">${m.emoji}</div>
+    <div class="question">${q.sentence}</div><div class="options" id="optionsWrap"></div><div class="feedback" id="feedback"></div>`;
+  const wrap=document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{ const btn=document.createElement('button'); btn.className='opt'; btn.textContent=opt; btn.onclick=()=>handleAnswer(opt,q.correct,btn); wrap.appendChild(btn); });
+}
+function handleAnswer(selected, correct, btnEl){
+  const buttons=document.querySelectorAll('.opt'); if(buttons[0].disabled) return;
+  const feedback=document.getElementById('feedback'); const isCorrect = selected===correct;
+  buttons.forEach(b=>{ b.disabled=true; if(b.textContent===correct) b.classList.add('correct'); else if(b===btnEl) b.classList.add('wrong'); else b.classList.add('dim'); });
+  if(isCorrect){ session.correctCount++; session.wrongDots[session.qIdx]=false; feedback.textContent=pickRandom(["شاباش! 🎉","بہت خوب! 🌟","بالکل ٹھیک! 🍃","زبردست! 🦋"]); feedback.style.color="#33448C"; burstConfetti(); }
+  else { session.wrongDots[session.qIdx]=true; feedback.textContent=`صحیح جواب: ${correct}`; feedback.style.color="#EF6461"; }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, 1200);
+}
+function renderMissionComplete(){
+  const i=session.missionIdx; const m=missions[i]; const score=session.correctCount;
+  let stars=score>=9?3:score>=6?2:1; progress[i].done=true; progress[i].stars=Math.max(progress[i].stars,stars);
+  if(i+1<missions.length) progress[i+1].unlocked=true;
+  card.innerHTML = `<div class="end"><div class="end-emoji">${m.badge}</div><div class="end-title">${m.title} مکمل!</div>
+    <div class="end-sub">${score} میں سے ${session.questions.length} جواب درست</div>
+    <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div><button class="btn-primary" onclick="renderMap()">نقشے پر واپس جائیں</button>
+    ${i+1<missions.length?`<button class="btn-secondary" onclick="startMission(${i+1})">اگلا مشن ←</button>`:''}</div></div>`;
+  bigConfetti();
+}
+function renderTrophy(){
+  const badgeList=missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `<div class="end"><div class="end-emoji">🏆</div><div class="end-title">آپ ماہر بن گئے!</div>
+    <div class="end-sub">آپ نے مترادف الفاظ مہم کے تمام 10 مشن مکمل کر لیے</div>
+    <div class="badge-shelf"><span>${badgeList}</span></div>
+    <button class="btn-primary" onclick="resetAll()">دوبارہ کھیلیں 🔁</button></div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = missions.map(()=>({unlocked:false, done:false, stars:0})); progress[0].unlocked=true; renderMap(); }
+function burstConfetti(){ const layer=document.createElement('div'); layer.className='confetti'; const emojis=['🎉','⭐','🍃','🦋'];
+  for(let i=0;i<10;i++){ const s=document.createElement('span'); s.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left=(40+Math.random()*20)+"%"; s.style.animationDuration=(1+Math.random()*0.6)+"s"; s.style.fontSize=(14+Math.random()*10)+"px"; layer.appendChild(s); }
+  document.body.appendChild(layer); setTimeout(()=>layer.remove(),1600); }
+function bigConfetti(){ const layer=document.createElement('div'); layer.className='confetti'; const emojis=['🎉','⭐','🍃','🦋','🏆','🌟'];
+  for(let i=0;i<28;i++){ const s=document.createElement('span'); s.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left=Math.random()*100+"%"; s.style.animationDuration=(1.4+Math.random()*1.2)+"s"; s.style.fontSize=(14+Math.random()*14)+"px"; layer.appendChild(s); }
+  document.body.appendChild(layer); setTimeout(()=>layer.remove(),2800); }
+renderMap();
+</script>
+</body>
+</html>
