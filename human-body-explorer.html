@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Human Body Explorer – Science Game for Kids | Fundemics</title>
+<meta name="description" content="Free human body science game for kids: senses, bones, heart, lungs, digestion, brain, teeth and healthy habits in 10 missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FDEEF0; --bg-dark:#F7D0D6; --deep:#4A1622;
+    --accent:#E0506A; --accent-dark:#B2344D;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#C0392B;
+    --glow1:rgba(224,80,106,0.2); --glow2:rgba(90,170,230,0.2);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Human Body <span>Explorer</span> 🫀</h1>
+    <div class="subtitle">10 missions &middot; the amazing human body</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Take a journey inside your own body 🔬<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const PARTS = [
+  {q:'We see with our…', a:'Eyes', w:['Ears','Nose','Hands'], e:'👀'},
+  {q:'We hear with our…', a:'Ears', w:['Eyes','Tongue','Feet'], e:'👂'},
+  {q:'We smell with our…', a:'Nose', w:['Ears','Knees','Eyes'], e:'👃'},
+  {q:'We taste with our…', a:'Tongue', w:['Nose','Teeth','Ears'], e:'👅'},
+  {q:'We feel hot and cold with our…', a:'Skin', w:['Hair','Nails','Teeth'], e:'🖐️'},
+  {q:'How many fingers are on one hand (including the thumb)?', a:'5', w:['4','6','10'], e:'✋'},
+  {q:'Which part of the body joins the head to the shoulders?', a:'Neck', w:['Elbow','Knee','Ankle']},
+  {q:'Which joint is in the middle of your arm?', a:'Elbow', w:['Knee','Ankle','Wrist'], e:'💪'},
+  {q:'Which joint is in the middle of your leg?', a:'Knee', w:['Elbow','Wrist','Shoulder'], e:'🦵'},
+  {q:'Which joint joins your hand to your arm?', a:'Wrist', w:['Ankle','Knee','Hip']},
+  {q:'Which joint joins your foot to your leg?', a:'Ankle', w:['Wrist','Elbow','Neck'], e:'🦶'},
+  {q:'What is the biggest organ of the human body?', a:'Skin', w:['Heart','Brain','Stomach']}
+];
+const SENSES = [
+  {q:'How many main senses do we have?', a:'5', w:['3','4','7']},
+  {q:'Which sense do we use when we listen to music?', a:'Hearing', w:['Taste','Smell','Touch'], e:'🎵'},
+  {q:'Which sense tells us a lemon is sour?', a:'Taste', w:['Hearing','Sight','Smell'], e:'🍋'},
+  {q:'Which sense tells us a flower smells nice?', a:'Smell', w:['Touch','Hearing','Sight'], e:'🌸'},
+  {q:'Which sense tells us that ice is cold?', a:'Touch', w:['Sight','Hearing','Taste'], e:'🧊'},
+  {q:'Which sense do we use to read a book?', a:'Sight', w:['Taste','Smell','Hearing'], e:'📖'},
+  {q:'Blind people can read Braille using the sense of…', a:'Touch', w:['Taste','Smell','Hearing']},
+  {q:'Sweet, salty, sour and bitter are all kinds of…', a:'Taste', w:['Sounds','Colours','Smells'], e:'🍬'},
+  {q:'Which part of the eye is the coloured ring?', a:'Iris', w:['Pupil','Eyelash','Eyebrow'], e:'👁️'},
+  {q:'What should you never look straight at, because it can hurt your eyes?', a:'The Sun', w:['The Moon','A book','A tree'], e:'☀️'},
+  {q:'Which sense helps you know if food has gone bad before tasting it?', a:'Smell', w:['Hearing','Touch','Balance']}
+];
+const BONES = [
+  {q:'All the bones in your body together are called the…', a:'Skeleton', w:['Muscles','Skin','Nerves'], e:'🦴'},
+  {q:'How many bones does an adult human have?', a:'206', w:['100','50','500']},
+  {q:'Which bone protects your brain?', a:'Skull', w:['Ribs','Spine','Femur'], e:'💀'},
+  {q:'Your ribs protect your heart and…', a:'Lungs', w:['Stomach','Brain','Kidneys']},
+  {q:'What is the longest bone in the body?', a:'Thigh bone (femur)', w:['Arm bone','Rib','Skull']},
+  {q:'The smallest bones in the body are found in the…', a:'Ear', w:['Toe','Nose','Finger'], e:'👂'},
+  {q:'Your backbone is also called the…', a:'Spine', w:['Skull','Rib cage','Pelvis']},
+  {q:'What helps your bones move?', a:'Muscles', w:['Hair','Nails','Blood']},
+  {q:'Which food helps build strong bones because it has calcium?', a:'Milk', w:['Candy','Chips','Soda'], e:'🥛'},
+  {q:'The place where two bones meet is called a…', a:'Joint', w:['Muscle','Nerve','Vein']},
+  {q:'Your heart is made of a special kind of…', a:'Muscle', w:['Bone','Fat','Hair'], e:'🫀'}
+];
+const HEART = [
+  {q:'What does the heart do?', a:'Pumps blood around the body', w:['Helps us see','Digests food','Makes us think']},
+  {q:'Where is your heart?', a:'In your chest', w:['In your head','In your leg','In your stomach'], e:'🫀'},
+  {q:'Your heart is about the size of your…', a:'Fist', w:['Head','Foot','Fingernail'], e:'✊'},
+  {q:'What happens to your heartbeat when you run fast?', a:'It speeds up', w:['It stops','It slows down','It stays the same'], e:'🏃'},
+  {q:'The tubes that carry blood around the body are called…', a:'Blood vessels', w:['Bones','Nerves','Muscles']},
+  {q:'Red blood cells carry ___ around the body.', a:'Oxygen', w:['Food waste','Sound','Hair']},
+  {q:'The beat of your heart that you can feel in your wrist is called your…', a:'Pulse', w:['Breath','Reflex','Sneeze']},
+  {q:'Which blood cells help fight germs?', a:'White blood cells', w:['Red blood cells','Skin cells','Hair cells'], e:'🦠'},
+  {q:'Arteries carry blood ___ the heart.', a:'Away from', w:['Into','Around the brain only','Nowhere']},
+  {q:'Platelets in the blood help to…', a:'Stop bleeding', w:['See colours','Digest food','Grow hair'], e:'🩹'}
+];
+const BREATH = [
+  {q:'Which organs help us breathe?', a:'Lungs', w:['Kidneys','Stomach','Liver'], e:'🫁'},
+  {q:'How many lungs do we have?', a:'2', w:['1','3','4']},
+  {q:'When we breathe in, our body takes in…', a:'Oxygen', w:['Carbon dioxide','Water','Smoke']},
+  {q:'When we breathe out, we give out…', a:'Carbon dioxide', w:['Oxygen','Food','Blood']},
+  {q:'The tube that carries air to the lungs is the…', a:'Windpipe (trachea)', w:['Food pipe','Spine','Vein']},
+  {q:'Tiny hairs inside your nose help to…', a:'Clean the air you breathe', w:['Help you taste','Make you taller','Warm your hands']},
+  {q:'The big muscle under the lungs that helps us breathe is the…', a:'Diaphragm', w:['Biceps','Heart','Tongue']},
+  {q:'Smoking is harmful to your…', a:'Lungs', w:['Hair','Nails','Eyebrows'], e:'🚭'},
+  {q:'When you exercise, you breathe…', a:'Faster', w:['Slower','Not at all','Backwards'], e:'🏃'},
+  {q:'Which protects the lungs?', a:'Rib cage', w:['Skull','Kneecap','Teeth']}
+];
+const DIGEST = [
+  {q:'Where does digestion start?', a:'In the mouth', w:['In the stomach','In the feet','In the lungs'], e:'👄'},
+  {q:'What do our teeth do to food?', a:'Chew it into small pieces', w:['Cook it','Freeze it','Colour it'], e:'🦷'},
+  {q:'The watery liquid in your mouth is called…', a:'Saliva', w:['Blood','Juice','Sweat']},
+  {q:'The tube that takes food from the mouth to the stomach is the…', a:'Food pipe (oesophagus)', w:['Windpipe','Spine','Artery']},
+  {q:'Which organ mixes and churns food with acid?', a:'Stomach', w:['Heart','Lungs','Brain']},
+  {q:'Most of the goodness from food is taken into the body in the…', a:'Small intestine', w:['Mouth','Lungs','Ears']},
+  {q:'The large intestine mainly takes out…', a:'Water', w:['Oxygen','Bones','Air']},
+  {q:'Which organ makes bile to help digest fats?', a:'Liver', w:['Heart','Lungs','Ear']},
+  {q:'Eating fruit, vegetables and whole grains gives us ___, which helps digestion.', a:'Fibre', w:['Sugar','Salt','Smoke'], e:'🥦'},
+  {q:'The two kidneys clean the blood and make…', a:'Urine', w:['Saliva','Tears','Sweat']}
+];
+const BRAIN = [
+  {q:'Which organ controls the whole body?', a:'Brain', w:['Heart','Stomach','Liver'], e:'🧠'},
+  {q:'Messages travel between the brain and body along…', a:'Nerves', w:['Bones','Hair','Blood cells']},
+  {q:'The bundle of nerves inside your backbone is the…', a:'Spinal cord', w:['Windpipe','Food pipe','Vein']},
+  {q:'Which part of the body helps you remember things?', a:'Brain', w:['Lungs','Kidneys','Feet']},
+  {q:'Pulling your hand away from something hot without thinking is a…', a:'Reflex', w:['Dream','Pulse','Sneeze'], e:'🔥'},
+  {q:'What helps your brain rest and grow?', a:'Sleep', w:['Candy','Screen time','Shouting'], e:'😴'},
+  {q:'Where is your brain?', a:'Inside your skull', w:['Inside your chest','In your tummy','In your hand']},
+  {q:'Wearing a ___ while cycling protects your brain.', a:'Helmet', w:['Scarf','Watch','Belt'], e:'⛑️'},
+  {q:'The brain is divided into a left side and a right side called…', a:'Hemispheres', w:['Lungs','Ventricles','Valves']},
+  {q:'Which does NOT help your brain?', a:'Skipping breakfast every day', w:['Getting enough sleep','Drinking water','Reading books']}
+];
+const TEETH = [
+  {q:'How many teeth does an adult usually have?', a:'32', w:['20','24','40'], e:'🦷'},
+  {q:'How many milk (baby) teeth do children have?', a:'20', w:['32','10','28']},
+  {q:'The sharp flat teeth at the front that cut food are…', a:'Incisors', w:['Molars','Canines','Wisdom teeth']},
+  {q:'The pointed teeth that tear food are…', a:'Canines', w:['Incisors','Molars','Gums']},
+  {q:'The big flat teeth at the back that grind food are…', a:'Molars', w:['Incisors','Canines','Fangs']},
+  {q:'How often should you brush your teeth?', a:'Twice a day', w:['Once a week','Once a month','Never'], e:'🪥'},
+  {q:'The hard white outer layer of a tooth is called…', a:'Enamel', w:['Gum','Root','Nerve']},
+  {q:'What causes tooth decay when we eat too much of it?', a:'Sugar', w:['Water','Milk','Vegetables'], e:'🍭'},
+  {q:'A doctor who looks after your teeth is a…', a:'Dentist', w:['Vet','Pilot','Baker']},
+  {q:'The pink part around your teeth is your…', a:'Gums', w:['Enamel','Tongue','Lips']}
+];
+const HEALTH = [
+  {q:'When should you wash your hands?', a:'Before eating and after the toilet', w:['Only on Fridays','Never','Only when they look dirty']},
+  {q:'What should you use to wash your hands properly?', a:'Soap and water', w:['Only water','Sand','Juice'], e:'🧼'},
+  {q:'Which food gives us lots of vitamin C?', a:'Oranges', w:['Chips','Candy','Butter'], e:'🍊'},
+  {q:'Which foods help build muscles because they have protein?', a:'Eggs, beans and lentils', w:['Sweets and soda','Chips and ketchup','Ice cream']},
+  {q:'Rice, bread and potatoes mainly give us…', a:'Energy (carbohydrates)', w:['Vitamin C','Calcium','Fibre only'], e:'🍚'},
+  {q:'What is the best drink for your body?', a:'Water', w:['Soda','Energy drink','Sugary juice'], e:'💧'},
+  {q:'Sunlight helps our skin make vitamin…', a:'D', w:['A','C','K'], e:'☀️'},
+  {q:'Kids should be active and play for about…', a:'An hour a day', w:['5 minutes a week','Never','One day a year'], e:'⚽'},
+  {q:'Why should we cover our mouth when we sneeze?', a:'To stop spreading germs', w:['To look cool','To warm our hands','To whistle'], e:'🤧'},
+  {q:'School-age children need about how much sleep each night?', a:'9 to 12 hours', w:['2 to 3 hours','4 to 5 hours','15 to 20 hours'], e:'🛏️'},
+  {q:'Which snack is the healthiest choice?', a:'An apple', w:['A chocolate bar','A bag of crisps','A fizzy drink'], e:'🍎'}
+];
+const ALL = [...PARTS, ...SENSES, ...BONES, ...HEART, ...BREATH, ...DIGEST, ...BRAIN, ...TEETH, ...HEALTH];
+
+const CONFIG = {
+  slug:'human-body-explorer', name:'Human Body Explorer', masterTitle:'Human Body Expert!',
+  cheers:['Brainy! 🧠','You got it! 💪','Correct! 🌟','Healthy answer! 🍎'],
+  confetti:['🎉','⭐','💪','🫀'],
+  missions:[
+    {title:'Body Parts', diff:'Easy', badge:'🥉', emoji:'🧍', gen:()=>fromBank(PARTS)},
+    {title:'Five Senses', diff:'Easy', badge:'🥉', emoji:'👀', gen:()=>fromBank(SENSES)},
+    {title:'Bones & Muscles', diff:'Easy-Medium', badge:'🥈', emoji:'🦴', gen:()=>fromBank(BONES)},
+    {title:'Heart & Blood', diff:'Medium', badge:'🥈', emoji:'🫀', gen:()=>fromBank(HEART)},
+    {title:'Breathing Lab', diff:'Medium', badge:'🥈', emoji:'🫁', gen:()=>fromBank(BREATH)},
+    {title:'Food Journey', diff:'Medium-Hard', badge:'🥇', emoji:'🍎', gen:()=>fromBank(DIGEST)},
+    {title:'Brain Power', diff:'Hard', badge:'🥇', emoji:'🧠', gen:()=>fromBank(BRAIN)},
+    {title:'Tooth Tower', diff:'Hard', badge:'🥇', emoji:'🦷', gen:()=>fromBank(TEETH)},
+    {title:'Healthy Habits', diff:'Very Hard', badge:'💎', emoji:'🥦', gen:()=>fromBank(HEALTH)},
+    {title:'Body Boss', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>fromBank(ALL)}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

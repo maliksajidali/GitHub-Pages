@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fraction Falls – Fractions Game for Kids | Fundemics</title>
+<meta name="description" content="Free fractions game for kids: shaded shapes, fractions of numbers, equivalent fractions, comparing, adding, subtracting and simplifying in 10 missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2EDFB; --bg-dark:#DDD2F4; --deep:#2E1F4F;
+    --accent:#7C5CD6; --accent-dark:#5A3DAE;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#E85D5D;
+    --glow1:rgba(124,92,214,0.22); --glow2:rgba(80,190,230,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Fraction <span>Falls</span> 💧</h1>
+    <div class="subtitle">10 missions &middot; fractions</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Split, share and compare your way down the falls 🌊<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const B = '<span class="blank">?</span>';
+const F = (a,b)=>`${a}/${b}`;
+const SHADE = '#7C5CD6', EMPTY = '#FFFFFF', LINE = '#2E1F4F';
+function pieSvg(n,k){
+  let s = '';
+  for(let i=0;i<n;i++){
+    const t1 = -Math.PI/2 + i*2*Math.PI/n, t2 = t1 + 2*Math.PI/n;
+    const x1=(80+50*Math.cos(t1)).toFixed(1), y1=(62+50*Math.sin(t1)).toFixed(1), x2=(80+50*Math.cos(t2)).toFixed(1), y2=(62+50*Math.sin(t2)).toFixed(1);
+    s += `<path d="M80,62 L${x1},${y1} A50,50 0 0 1 ${x2},${y2} Z" fill="${i<k?SHADE:EMPTY}"/>`;
+  }
+  return `<svg viewBox="0 0 160 124" width="170" height="132"><g stroke="${LINE}" stroke-width="3" stroke-linejoin="round">${s}</g></svg>`;
+}
+function barSvg(n,k){
+  const w = 150/n; let s = '';
+  for(let i=0;i<n;i++) s += `<rect x="${(5+i*w).toFixed(1)}" y="40" width="${w.toFixed(1)}" height="44" fill="${i<k?SHADE:EMPTY}"/>`;
+  return `<svg viewBox="0 0 160 124" width="200" height="155"><g stroke="${LINE}" stroke-width="3">${s}</g></svg>`;
+}
+function fracOpts(correct, cands){
+  const s = new Set([correct]);
+  cands.forEach(c=>{ if(s.size<4 && c && !/\/0$|^0\//.test(c)) s.add(c); });
+  let g=0; while(s.size<4 && g++<50){ const d=rnd(2,9); s.add(F(rnd(1,d-1),d)); }
+  return shuffle([...s]);
+}
+function shadedQ(maxN, useBar){
+  const n = rnd(2,maxN), k = rnd(1,n-1);
+  return {q:'What fraction is shaded?', a:F(k,n), opts:fracOpts(F(k,n),[F(n-k,n),F(k,n+1),F(k+1 < n ? k+1 : k-1 || 1,n),F(n,k)]), svg: useBar ? barSvg(n,k) : pieSvg(n,k)};
+}
+function ofNumberQ(){
+  const b = pickRandom([2,3,4,5,10]), a = rnd(1,b-1), m = rnd(2,10), N = b*m, ans = a*m;
+  return {q:`What is ${F(a,b)} of ${N}?`, a:String(ans), opts:numOpts(ans,[m,N-ans,ans+a]), emoji:'🍪'};
+}
+const BASES = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5]];
+function equivQ(){
+  const [a,b] = pickRandom(BASES), k = rnd(2,5);
+  return {q:`${F(a,b)} = ${B}/${b*k}`, a:String(a*k), opts:numOpts(a*k,[a*k+1,a*k-1,b*k-a*k,a+k])};
+}
+function compareSameQ(){
+  const n = rnd(4,12); let x = rnd(1,n-1), y = rnd(1,n-1); while(y===x) y = rnd(1,n-1);
+  const big = Math.random()<0.6;
+  const ans = big ? F(Math.max(x,y),n) : F(Math.min(x,y),n);
+  return {q:`Which fraction is ${big?'bigger':'smaller'}?`, a:ans, opts:shuffle([F(x,n),F(y,n),'They are equal'])};
+}
+function compareUnitQ(){
+  let a = rnd(2,12), b = rnd(2,12); while(b===a) b = rnd(2,12);
+  const big = Math.random()<0.6;
+  const ans = big ? F(1,Math.min(a,b)) : F(1,Math.max(a,b));
+  return {q:`Which fraction is ${big?'bigger':'smaller'}?`, a:ans, opts:shuffle([F(1,a),F(1,b),'They are equal']), why: 'more pieces means each piece is smaller'};
+}
+function addQ(){
+  const n = rnd(3,12), a = rnd(1,n-2), b = rnd(1,n-1-a);
+  return {q:`${F(a,n)} + ${F(b,n)} = ${B}`, a:F(a+b,n), opts:fracOpts(F(a+b,n),[F(a+b,n+n),F(a+b+1,n),F(Math.abs(a-b)||1,n)]), why:'add the tops, keep the bottom the same'};
+}
+function subQ(){
+  const n = rnd(3,12), a = rnd(2,n-1), b = rnd(1,a-1);
+  return {q:`${F(a,n)} − ${F(b,n)} = ${B}`, a:F(a-b,n), opts:fracOpts(F(a-b,n),[F(a+b,n),F(a-b+1,n),F(a-b,0) , F(a-b===1?2:a-b-1,n)]), why:'subtract the tops, keep the bottom the same'};
+}
+const SIMPLE = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5]];
+function simplifyQ(){
+  const [a,b] = pickRandom(SIMPLE), k = rnd(2,4);
+  const others = shuffle(SIMPLE.filter(x=>x[0]!==a||x[1]!==b)).slice(0,3).map(x=>F(x[0],x[1]));
+  return {q:`Simplify ${F(a*k,b*k)}`, a:F(a,b), opts:shuffle([F(a,b),...others]), why:`divide top and bottom by ${k}`};
+}
+const ALL = [()=>shadedQ(8,true), ofNumberQ, equivQ, compareSameQ, compareUnitQ, addQ, subQ, simplifyQ];
+
+const CONFIG = {
+  slug:'fraction-falls', name:'Fraction Falls', masterTitle:'Fraction Falls Champion!',
+  cheers:['Great job! 🎉','Perfect piece! 🍕','Correct! 💧','You got it! ⭐'],
+  confetti:['🎉','⭐','💧','🍕'],
+  missions:[
+    {title:'Pizza Halves & Quarters', diff:'Easy', badge:'🥉', emoji:'🍕', gen:()=>repeatGen(()=>shadedQ(4,Math.random()<0.4), 8)},
+    {title:'Chocolate Bars', diff:'Easy-Medium', badge:'🥉', emoji:'🍫', gen:()=>repeatGen(()=>shadedQ(8,true), 10)},
+    {title:'Sharing Stream', diff:'Medium', badge:'🥈', emoji:'🍪', gen:()=>repeatGen(ofNumberQ)},
+    {title:'Twin Pools', diff:'Medium', badge:'🥈', emoji:'👯', gen:()=>repeatGen(equivQ)},
+    {title:'Bigger or Smaller?', diff:'Medium', badge:'🥈', emoji:'⚖️', gen:()=>repeatGen(compareSameQ)},
+    {title:'Unit Fraction Race', diff:'Medium-Hard', badge:'🥇', emoji:'🏁', gen:()=>repeatGen(compareUnitQ)},
+    {title:'Adding Rapids', diff:'Hard', badge:'🥇', emoji:'➕', gen:()=>repeatGen(addQ)},
+    {title:'Subtracting Splash', diff:'Hard', badge:'🥇', emoji:'➖', gen:()=>repeatGen(subQ)},
+    {title:'Simplify Canyon', diff:'Very Hard', badge:'💎', emoji:'✂️', gen:()=>repeatGen(simplifyQ)},
+    {title:'Bottom of the Falls', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>repeatGen(()=>pickRandom(ALL)())}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

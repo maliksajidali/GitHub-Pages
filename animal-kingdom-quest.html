@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Animal Kingdom Quest – Animal Science Game for Kids | Fundemics</title>
+<meta name="description" content="Free animal science game for kids: baby animals, homes, food, animal groups, habitats, life cycles and amazing facts in 10 missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF3E3; --bg-dark:#FBDDB6; --deep:#4A2A10;
+    --accent:#E8892B; --accent-dark:#B8651A;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#D94848;
+    --glow1:rgba(232,137,43,0.22); --glow2:rgba(120,190,80,0.2);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Animal Kingdom <span>Quest</span> 🦁</h1>
+    <div class="subtitle">10 missions &middot; animal science</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Discover the secrets of the animal kingdom 🐾<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const BABIES = [
+  {q:'A baby cat is called a…', a:'Kitten', w:['Puppy','Cub','Calf'], e:'🐱'},
+  {q:'A baby dog is called a…', a:'Puppy', w:['Kitten','Foal','Lamb'], e:'🐶'},
+  {q:'A baby cow is called a…', a:'Calf', w:['Foal','Kid','Cub'], e:'🐄'},
+  {q:'A baby sheep is called a…', a:'Lamb', w:['Kid','Calf','Chick'], e:'🐑'},
+  {q:'A baby horse is called a…', a:'Foal', w:['Calf','Lamb','Joey'], e:'🐴'},
+  {q:'A baby frog is called a…', a:'Tadpole', w:['Froglet','Chick','Larva'], e:'🐸'},
+  {q:'A baby duck is called a…', a:'Duckling', w:['Chick','Gosling','Cygnet'], e:'🦆'},
+  {q:'A baby goat is called a…', a:'Kid', w:['Lamb','Calf','Foal'], e:'🐐'},
+  {q:'A baby lion is called a…', a:'Cub', w:['Kitten','Pup','Calf'], e:'🦁'},
+  {q:'A baby kangaroo is called a…', a:'Joey', w:['Cub','Kid','Pup'], e:'🦘'},
+  {q:'A baby hen is called a…', a:'Chick', w:['Duckling','Kid','Joey'], e:'🐔'},
+  {q:'A baby deer is called a…', a:'Fawn', w:['Foal','Calf','Kid'], e:'🦌'},
+  {q:'A baby owl is called an…', a:'Owlet', w:['Eaglet','Chick','Cub'], e:'🦉'}
+];
+const HOMES = [
+  {q:'A bird lives in a…', a:'Nest', w:['Hive','Burrow','Den'], e:'🐦'},
+  {q:'Bees live in a…', a:'Hive', w:['Nest','Web','Stable'], e:'🐝'},
+  {q:'A rabbit lives in a…', a:'Burrow', w:['Hive','Stable','Kennel'], e:'🐇'},
+  {q:'A spider lives on a…', a:'Web', w:['Nest','Hive','Burrow'], e:'🕷️'},
+  {q:'A lion lives in a…', a:'Den', w:['Stable','Hive','Nest'], e:'🦁'},
+  {q:'A horse lives in a…', a:'Stable', w:['Kennel','Sty','Den'], e:'🐴'},
+  {q:'A pet dog lives in a…', a:'Kennel', w:['Stable','Hive','Burrow'], e:'🐶'},
+  {q:'A pig lives in a…', a:'Sty', w:['Stable','Kennel','Nest'], e:'🐷'},
+  {q:'Ants live in an…', a:'Anthill', w:['Hive','Den','Stable'], e:'🐜'},
+  {q:'A beaver builds a home called a…', a:'Lodge', w:['Hive','Stable','Web'], e:'🦫'},
+  {q:'A cow lives in a…', a:'Shed', w:['Hive','Web','Nest'], e:'🐄'},
+  {q:'Pet fish live in an…', a:'Aquarium', w:['Anthill','Burrow','Kennel'], e:'🐠'}
+];
+const DIET_O = ['Herbivore (plants)','Carnivore (meat)','Omnivore (both)'];
+function diet(animal, ans, e){ return {q:`What kind of eater is a ${animal}?`, a:ans, w:DIET_O.filter(x=>x!==ans), e}; }
+const DIETS = [
+  diet('cow',DIET_O[0],'🐄'), diet('lion',DIET_O[1],'🦁'), diet('bear',DIET_O[2],'🐻'), diet('rabbit',DIET_O[0],'🐇'),
+  diet('tiger',DIET_O[1],'🐯'), diet('giraffe',DIET_O[0],'🦒'), diet('wolf',DIET_O[1],'🐺'), diet('elephant',DIET_O[0],'🐘'),
+  diet('shark',DIET_O[1],'🦈'), diet('chicken',DIET_O[2],'🐔'), diet('eagle',DIET_O[1],'🦅'), diet('panda',DIET_O[0],'🐼'),
+  {q:'An animal that eats only plants is called a…', a:'Herbivore', w:['Carnivore','Omnivore','Insect']},
+  {q:'Humans eat both plants and meat. So humans are…', a:'Omnivores', w:['Herbivores','Carnivores','Reptiles'], e:'🧑'}
+];
+const GR = ['Mammal','Bird','Reptile','Amphibian','Fish','Insect'];
+function grp(animal, ans, e){ return {q:`Which animal group does the ${animal} belong to?`, a:ans, w:shuffle(GR.filter(x=>x!==ans)).slice(0,3), e}; }
+const GROUPS = [
+  grp('whale','Mammal','🐋'), grp('bat','Mammal','🦇'), grp('penguin','Bird','🐧'), grp('snake','Reptile','🐍'),
+  grp('frog','Amphibian','🐸'), grp('shark','Fish','🦈'), grp('butterfly','Insect','🦋'), grp('crocodile','Reptile','🐊'),
+  grp('dolphin','Mammal','🐬'), grp('ostrich','Bird','🦤'), grp('ant','Insect','🐜'), grp('turtle','Reptile','🐢'),
+  grp('goldfish','Fish','🐟'), grp('salamander','Amphibian','🦎')
+];
+const SOUNDS = [
+  {q:'A lion…', a:'Roars', w:['Barks','Hisses','Quacks'], e:'🦁'},
+  {q:'A dog…', a:'Barks', w:['Moos','Roars','Hoots'], e:'🐶'},
+  {q:'A cat…', a:'Meows', w:['Neighs','Croaks','Buzzes'], e:'🐱'},
+  {q:'A cow…', a:'Moos', w:['Bleats','Barks','Hisses'], e:'🐄'},
+  {q:'A horse…', a:'Neighs', w:['Moos','Quacks','Roars'], e:'🐴'},
+  {q:'A sheep…', a:'Bleats', w:['Neighs','Hoots','Barks'], e:'🐑'},
+  {q:'A duck…', a:'Quacks', w:['Croaks','Meows','Roars'], e:'🦆'},
+  {q:'A snake…', a:'Hisses', w:['Buzzes','Barks','Moos'], e:'🐍'},
+  {q:'An owl…', a:'Hoots', w:['Quacks','Hisses','Neighs'], e:'🦉'},
+  {q:'A donkey…', a:'Brays', w:['Hoots','Meows','Croaks'], e:'🫏'},
+  {q:'A bee…', a:'Buzzes', w:['Hisses','Bleats','Roars'], e:'🐝'},
+  {q:'A frog…', a:'Croaks', w:['Barks','Neighs','Buzzes'], e:'🐸'},
+  {q:'A wolf…', a:'Howls', w:['Quacks','Moos','Meows'], e:'🐺'}
+];
+const HABITATS = [
+  {q:'Where do camels live?', a:'Desert', w:['Arctic','Rainforest','Ocean'], e:'🐫'},
+  {q:'Where do polar bears live?', a:'Arctic', w:['Desert','Rainforest','Grassland'], e:'🐻‍❄️'},
+  {q:'Where do most penguins live?', a:'Antarctica', w:['Sahara Desert','Amazon Rainforest','Arctic'], e:'🐧'},
+  {q:'Where do lots of monkeys live?', a:'Rainforest', w:['Desert','Arctic','Ocean'], e:'🐒'},
+  {q:'Where do clownfish live?', a:'Coral reef', w:['Desert','Mountains','Pond'], e:'🐠'},
+  {q:'Where do lions live?', a:'Grassland (savanna)', w:['Arctic','Ocean','Rainforest'], e:'🦁'},
+  {q:'Where do snow leopards live?', a:'Mountains', w:['Desert','Coral reef','Pond'], e:'🐆'},
+  {q:'Where do octopuses live?', a:'Ocean', w:['Desert','Grassland','Mountains'], e:'🐙'},
+  {q:'Where do kangaroos live in the wild?', a:'Australia', w:['Antarctica','Europe','Arctic'], e:'🦘'},
+  {q:'Frogs often live near a…', a:'Pond', w:['Desert','Glacier','Volcano'], e:'🐸'},
+  {q:'The natural home of an animal is called its…', a:'Habitat', w:['Diet','Life cycle','Skeleton']},
+  {q:'Pandas live in bamboo forests in which country?', a:'China', w:['Brazil','Egypt','Canada'], e:'🐼'}
+];
+const FEATURES = [
+  {q:'Birds are covered in…', a:'Feathers', w:['Scales','Fur','Shells'], e:'🐦'},
+  {q:'Fish are covered in…', a:'Scales', w:['Feathers','Fur','Hair'], e:'🐟'},
+  {q:'Most mammals are covered in…', a:'Fur or hair', w:['Feathers','Scales','Shells'], e:'🐻'},
+  {q:'Fish breathe underwater using their…', a:'Gills', w:['Lungs','Fins','Tails'], e:'🐟'},
+  {q:'Whales breathe using…', a:'Lungs', w:['Gills','Fins','Skin'], e:'🐋'},
+  {q:'How many legs does an insect have?', a:'6', w:['4','8','10'], e:'🐞'},
+  {q:'How many legs does a spider have?', a:'8', w:['6','4','10'], e:'🕷️'},
+  {q:'Which mammal can truly fly?', a:'Bat', w:['Flying fish','Penguin','Squirrel'], e:'🦇'},
+  {q:'Which animal has no legs?', a:'Snake', w:['Lizard','Frog','Crocodile'], e:'🐍'},
+  {q:'A turtle carries its home on its back. What is it called?', a:'Shell', w:['Scale','Fin','Horn'], e:'🐢'},
+  {q:'An elephant uses its long nose, called a ___, to pick things up.', a:'Trunk', w:['Tusk','Tail','Horn'], e:'🐘'},
+  {q:'Mammals feed their babies with…', a:'Milk', w:['Nectar','Seeds','Leaves'], e:'🍼'}
+];
+const LIFE = [
+  {q:'What does a caterpillar turn into?', a:'Butterfly', w:['Bee','Beetle','Spider'], e:'🐛'},
+  {q:'What does a tadpole grow into?', a:'Frog', w:['Fish','Snake','Turtle'], e:'🐸'},
+  {q:'A butterfly starts its life as an…', a:'Egg', w:['Adult','Pupa','Cocoon'], e:'🦋'},
+  {q:'The resting stage of a butterfly is called a…', a:'Chrysalis', w:['Tadpole','Nest','Larva'], e:'🦋'},
+  {q:'What is the correct butterfly life cycle?', a:'Egg → caterpillar → pupa → butterfly', w:['Caterpillar → egg → butterfly → pupa','Pupa → egg → butterfly → caterpillar','Butterfly → pupa → caterpillar → egg']},
+  {q:'Tadpoles live in…', a:'Water', w:['Trees','Deserts','Nests']},
+  {q:'A chick hatches from an…', a:'Egg', w:['Seed','Cocoon','Burrow'], e:'🐣'},
+  {q:'Which mammal lays eggs?', a:'Platypus', w:['Dog','Whale','Monkey']},
+  {q:'Frog eggs laid in water are called…', a:'Frogspawn', w:['Tadpoles','Larvae','Pupae'], e:'🐸'},
+  {q:'Most mammals give birth to…', a:'Live babies', w:['Eggs','Seeds','Spores']},
+  {q:'Animals that sleep through the winter are said to…', a:'Hibernate', w:['Migrate','Hatch','Moult'], e:'🐻'},
+  {q:'Birds that fly to warmer places in winter…', a:'Migrate', w:['Hibernate','Hatch','Roar'], e:'🕊️'}
+];
+const FACTS = [
+  {q:'What is the fastest land animal?', a:'Cheetah', w:['Lion','Horse','Rabbit'], e:'🐆'},
+  {q:'What is the largest animal on Earth?', a:'Blue whale', w:['Elephant','Giraffe','Shark'], e:'🐋'},
+  {q:'What is the tallest animal?', a:'Giraffe', w:['Elephant','Camel','Ostrich'], e:'🦒'},
+  {q:'What is the largest land animal?', a:'African elephant', w:['Hippo','Rhino','Giraffe'], e:'🐘'},
+  {q:'Which bird cannot fly but is a very fast runner?', a:'Ostrich', w:['Eagle','Parrot','Crow']},
+  {q:'Which animal can change the colour of its skin?', a:'Chameleon', w:['Rabbit','Horse','Sheep'], e:'🦎'},
+  {q:'Which animal carries its baby in a pouch?', a:'Kangaroo', w:['Monkey','Bear','Deer'], e:'🦘'},
+  {q:'Which animal has black and white stripes?', a:'Zebra', w:['Tiger','Leopard','Giraffe'], e:'🦓'},
+  {q:'How many arms does an octopus have?', a:'8', w:['6','10','4'], e:'🐙'},
+  {q:'Animals that are awake at night are called…', a:'Nocturnal', w:['Herbivores','Mammals','Migrants'], e:'🦉'},
+  {q:'Which animal is known as the "ship of the desert"?', a:'Camel', w:['Horse','Elephant','Donkey'], e:'🐫'},
+  {q:'What is the national animal of Pakistan?', a:'Markhor', w:['Lion','Tiger','Camel'], e:'🐐'},
+  {q:'Which animal is famous for its black and white fur and eats bamboo?', a:'Giant panda', w:['Zebra','Polar bear','Skunk'], e:'🐼'}
+];
+const ALL = [...BABIES, ...HOMES, ...DIETS, ...GROUPS, ...SOUNDS, ...HABITATS, ...FEATURES, ...LIFE, ...FACTS];
+
+const CONFIG = {
+  slug:'animal-kingdom-quest', name:'Animal Kingdom Quest', masterTitle:'Animal Kingdom Expert!',
+  cheers:['Roar-some! 🦁','You got it! 🐾','Correct! 🌟','Wild work! 🎉'],
+  confetti:['🎉','⭐','🐾','🦁'],
+  missions:[
+    {title:'Baby Animals', diff:'Easy', badge:'🥉', emoji:'🐣', gen:()=>fromBank(BABIES)},
+    {title:'Animal Homes', diff:'Easy', badge:'🥉', emoji:'🏡', gen:()=>fromBank(HOMES)},
+    {title:'Who Says That?', diff:'Easy-Medium', badge:'🥈', emoji:'🔊', gen:()=>fromBank(SOUNDS)},
+    {title:'What Do They Eat?', diff:'Medium', badge:'🥈', emoji:'🍖', gen:()=>fromBank(DIETS)},
+    {title:'Animal Groups', diff:'Medium', badge:'🥈', emoji:'🗂️', gen:()=>fromBank(GROUPS)},
+    {title:'Habitat Hunt', diff:'Medium-Hard', badge:'🥇', emoji:'🌍', gen:()=>fromBank(HABITATS)},
+    {title:'Body Features', diff:'Hard', badge:'🥇', emoji:'🪶', gen:()=>fromBank(FEATURES)},
+    {title:'Life Cycles', diff:'Hard', badge:'🥇', emoji:'🦋', gen:()=>fromBank(LIFE)},
+    {title:'Amazing Animal Facts', diff:'Very Hard', badge:'💎', emoji:'🐆', gen:()=>fromBank(FACTS)},
+    {title:'King of the Kingdom', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>fromBank(ALL)}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

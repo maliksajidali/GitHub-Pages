@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Plant Power – Plant Science Game for Kids | Fundemics</title>
+<meta name="description" content="Free plant science game for kids: parts of a plant, what plants need, seeds, photosynthesis, pollination, trees and amazing plants in 10 missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F8E4; --bg-dark:#DCEEBE; --deep:#28400F;
+    --accent:#7AB532; --accent-dark:#56861E;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#E85D5D;
+    --glow1:rgba(122,181,50,0.22); --glow2:rgba(255,150,190,0.2);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Plant <span>Power</span> 🌻</h1>
+    <div class="subtitle">10 missions &middot; plants &amp; nature</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Grow your garden one answer at a time 🌱<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const PARTS = [
+  {q:'Which part of a plant takes in water from the soil?', a:'Roots', w:['Leaves','Flower','Fruit']},
+  {q:'Which part of a plant holds it firmly in the ground?', a:'Roots', w:['Petals','Seeds','Leaves']},
+  {q:'Which part carries water from the roots to the leaves?', a:'Stem', w:['Flower','Seed','Petal']},
+  {q:'Which part of a plant makes food using sunlight?', a:'Leaves', w:['Roots','Seeds','Stem'], e:'🍃'},
+  {q:'Which part of a plant makes seeds?', a:'Flower', w:['Root','Stem','Leaf'], e:'🌸'},
+  {q:'Which part of the plant protects the seeds inside?', a:'Fruit', w:['Root','Leaf','Stem'], e:'🍎'},
+  {q:'The colourful parts of a flower are called…', a:'Petals', w:['Roots','Thorns','Bark'], e:'🌷'},
+  {q:'The hard outer covering of a tree trunk is called…', a:'Bark', w:['Petal','Pollen','Root']},
+  {q:'A tree\'s main stem is called the…', a:'Trunk', w:['Branch','Root','Twig'], e:'🌳'},
+  {q:'The sharp points on a rose stem are called…', a:'Thorns', w:['Petals','Seeds','Leaves'], e:'🌹'},
+  {q:'Tiny holes on leaves that let air in and out are called…', a:'Stomata', w:['Roots','Petals','Seeds']}
+];
+const NEEDS = [
+  {q:'Which of these do plants NOT need to grow?', a:'Chocolate', w:['Sunlight','Water','Air'], e:'🍫'},
+  {q:'Plants need sunlight, water, air and…', a:'Nutrients from soil', w:['Sugar cubes','Milk','Toys'], e:'🪴'},
+  {q:'What happens to a plant kept in the dark for a long time?', a:'It turns pale and weak', w:['It grows stronger','It turns blue','It flowers more']},
+  {q:'What happens if a plant gets no water?', a:'It wilts and dies', w:['It grows faster','It turns into a tree','Nothing']},
+  {q:'Too much water can make a plant\'s roots…', a:'Rot', w:['Glow','Fly','Sing']},
+  {q:'Which gas do plants take in from the air?', a:'Carbon dioxide', w:['Oxygen only','Helium','Smoke']},
+  {q:'Plants in a window often bend towards the…', a:'Light', w:['Wall','Floor','Door'], e:'🪟'},
+  {q:'A person who grows plants in a garden is a…', a:'Gardener', w:['Pilot','Baker','Tailor'], e:'👩‍🌾'},
+  {q:'Farmers add ___ to soil to give plants extra nutrients.', a:'Fertiliser (compost)', w:['Sand','Plastic','Salt']},
+  {q:'Earthworms help plants by…', a:'Making the soil loose and rich', w:['Eating all the leaves','Blocking the sun','Drinking the rain'], e:'🪱'}
+];
+const SEEDS = [
+  {q:'When a seed starts to grow, it is called…', a:'Germination', w:['Pollination','Evaporation','Hibernation'], e:'🌱'},
+  {q:'A young plant that has just grown from a seed is a…', a:'Seedling', w:['Pollen','Petal','Thorn']},
+  {q:'What usually grows out of a seed first?', a:'The root', w:['The flower','The fruit','The leaf']},
+  {q:'Dandelion seeds are spread by the…', a:'Wind', w:['Birds only','Fire','Snow'], e:'🌬️'},
+  {q:'Coconuts can float to new places on…', a:'Water', w:['Wind','Birds','Cars'], e:'🥥'},
+  {q:'Birds help spread seeds by…', a:'Eating fruit and dropping seeds', w:['Building nests','Singing','Flying south']},
+  {q:'Sticky burrs spread their seeds by…', a:'Hooking onto animal fur', w:['Floating','Exploding','Rolling']},
+  {q:'Most seeds need water and ___ to start growing.', a:'Warmth', w:['Darkness only','Ice','Salt']},
+  {q:'Which fruit has its seeds on the outside?', a:'Strawberry', w:['Mango','Apple','Orange'], e:'🍓'},
+  {q:'A mango has how many large seeds inside?', a:'1', w:['0','10','100'], e:'🥭'}
+];
+const FOOD = [
+  {q:'Plants make their own food by a process called…', a:'Photosynthesis', w:['Digestion','Germination','Evaporation']},
+  {q:'The green substance in leaves that catches sunlight is…', a:'Chlorophyll', w:['Chocolate','Pollen','Nectar'], e:'🍃'},
+  {q:'Which gas do plants give out that we breathe?', a:'Oxygen', w:['Carbon dioxide','Smoke','Steam']},
+  {q:'Photosynthesis mostly happens in the…', a:'Leaves', w:['Roots','Seeds','Bark']},
+  {q:'Plants need ___ for photosynthesis.', a:'Sunlight', w:['Moonlight only','Darkness','Music'], e:'☀️'},
+  {q:'The food a plant makes is a kind of…', a:'Sugar', w:['Salt','Metal','Plastic']},
+  {q:'Why are most leaves green?', a:'Because of chlorophyll', w:['Because of paint','Because of water','Because of soil']},
+  {q:'Plants help clean the air by taking in…', a:'Carbon dioxide', w:['Oxygen','Water vapour only','Dust only']},
+  {q:'Water, carbon dioxide and sunlight are the ingredients for…', a:'Photosynthesis', w:['Pollination','Germination','Hibernation']},
+  {q:'Animals depend on plants because plants give them food and…', a:'Oxygen', w:['Electricity','Plastic','Metal'], e:'🐄'}
+];
+const POLLEN = [
+  {q:'The yellow powder found in flowers is called…', a:'Pollen', w:['Nectar','Sap','Seed'], e:'🌼'},
+  {q:'Moving pollen from one flower to another is called…', a:'Pollination', w:['Photosynthesis','Germination','Migration']},
+  {q:'Which insect is famous for pollinating flowers?', a:'Bee', w:['Mosquito','Cockroach','Ant only'], e:'🐝'},
+  {q:'The sweet juice inside flowers is called…', a:'Nectar', w:['Pollen','Sap','Chlorophyll']},
+  {q:'Bees use nectar to make…', a:'Honey', w:['Milk','Wax only','Juice'], e:'🍯'},
+  {q:'After pollination, a flower can turn into a…', a:'Fruit', w:['Root','Rock','Leaf']},
+  {q:'Bright petals and sweet smells help flowers attract…', a:'Insects', w:['Fish','Rocks','Snow']},
+  {q:'Grasses and wheat are mostly pollinated by…', a:'Wind', w:['Bees','Bats','Fish']},
+  {q:'Which of these also helps pollinate flowers?', a:'Butterflies', w:['Worms','Fish','Snails'], e:'🦋'},
+  {q:'The part of the flower that makes pollen is the…', a:'Stamen', w:['Root','Stem','Bark']}
+];
+const PARTS_WE_EAT = [
+  {q:'A carrot is which part of the plant?', a:'Root', w:['Stem','Leaf','Flower'], e:'🥕'},
+  {q:'A potato is which part of the plant?', a:'Stem (tuber)', w:['Root','Fruit','Flower'], e:'🥔'},
+  {q:'Spinach is which part of the plant?', a:'Leaves', w:['Roots','Seeds','Fruit'], e:'🥬'},
+  {q:'Cauliflower is which part of the plant?', a:'Flower', w:['Root','Stem','Seed']},
+  {q:'Peas are which part of the plant?', a:'Seeds', w:['Roots','Leaves','Stem'], e:'🫛'},
+  {q:'Sugarcane is which part of the plant?', a:'Stem', w:['Root','Leaf','Flower']},
+  {q:'A tomato is which part of the plant?', a:'Fruit', w:['Root','Leaf','Stem'], e:'🍅'},
+  {q:'A radish is which part of the plant?', a:'Root', w:['Fruit','Flower','Leaf']},
+  {q:'Broccoli is mainly which part of the plant?', a:'Flower buds', w:['Roots','Seeds','Bark'], e:'🥦'},
+  {q:'Rice and wheat grains are…', a:'Seeds', w:['Roots','Leaves','Flowers'], e:'🌾'},
+  {q:'Mint and coriander leaves are used as…', a:'Herbs', w:['Roots','Nuts','Grains'], e:'🌿'}
+];
+const AMAZING = [
+  {q:'Which plant stores water and grows in deserts?', a:'Cactus', w:['Lotus','Moss','Rice'], e:'🌵'},
+  {q:'Which plant can catch and eat insects?', a:'Venus flytrap', w:['Sunflower','Rose','Mango tree']},
+  {q:'Which flower grows in ponds and floats on water?', a:'Lotus', w:['Cactus','Sunflower','Daisy'], e:'🪷'},
+  {q:'Which plant is one of the fastest-growing in the world?', a:'Bamboo', w:['Oak','Cactus','Pine'], e:'🎋'},
+  {q:'Young sunflowers turn their heads to follow the…', a:'Sun', w:['Moon','Wind','Rain'], e:'🌻'},
+  {q:'The biggest single flower in the world is the…', a:'Rafflesia', w:['Rose','Tulip','Daisy']},
+  {q:'The tallest trees in the world are…', a:'Redwoods', w:['Palm trees','Apple trees','Bushes']},
+  {q:'Which plant folds its leaves when you touch it?', a:'Touch-me-not (Mimosa)', w:['Cactus','Mint','Grass']},
+  {q:'What is the national flower of Pakistan?', a:'Jasmine', w:['Rose','Tulip','Sunflower']},
+  {q:'What is the national tree of Pakistan?', a:'Deodar', w:['Mango','Neem','Banyan'], e:'🌲'},
+  {q:'You can tell a tree\'s age by counting the rings in its…', a:'Trunk', w:['Leaves','Flowers','Roots'], e:'🪵'}
+];
+const TREES = [
+  {q:'Trees that lose their leaves in autumn are called…', a:'Deciduous', w:['Evergreen','Cactus','Desert'], e:'🍂'},
+  {q:'Trees that keep green leaves all year are called…', a:'Evergreen', w:['Deciduous','Seasonal','Annual'], e:'🌲'},
+  {q:'Pine trees make their seeds inside…', a:'Cones', w:['Apples','Flowers only','Pods'], e:'🌲'},
+  {q:'Which of these do we get from trees?', a:'Wood and paper', w:['Plastic','Glass','Iron']},
+  {q:'Cutting down large areas of forest is called…', a:'Deforestation', w:['Pollination','Germination','Irrigation'], e:'🪓'},
+  {q:'Why are forests important?', a:'They give oxygen and homes for animals', w:['They make noise','They block the sun forever','They melt ice']},
+  {q:'Hot, wet forests near the equator are called…', a:'Rainforests', w:['Deserts','Tundras','Glaciers']},
+  {q:'Planting new trees is a good way to…', a:'Help the environment', w:['Make more pollution','Waste water','Stop rain']},
+  {q:'Rubber comes from the ___ of rubber trees.', a:'Sap (latex)', w:['Leaves','Flowers','Roots']},
+  {q:'Which tree gives us coconuts?', a:'Palm tree', w:['Oak tree','Pine tree','Apple tree'], e:'🌴'}
+];
+const PLANTORNOT = [
+  {q:'Is a mushroom a plant?', a:'No, it is a fungus', w:['Yes, it is a flower','Yes, it is a tree','No, it is an animal'], e:'🍄'},
+  {q:'Is grass a plant?', a:'Yes', w:['No, it is a fungus','No, it is an animal','No, it is a rock']},
+  {q:'Coral in the sea is actually made by tiny…', a:'Animals', w:['Plants','Rocks','Fungi'], e:'🪸'},
+  {q:'Moss and ferns do not make flowers. They spread by…', a:'Spores', w:['Seeds in fruit','Cones','Bulbs']},
+  {q:'Green slime that grows in ponds is usually…', a:'Algae', w:['Moss','Mushroom','Pollen']},
+  {q:'Seaweed is a type of…', a:'Algae', w:['Fish','Coral','Fungus']},
+  {q:'Which of these is a living thing?', a:'Tree', w:['Rock','Cloud','Chair'], e:'🌳'},
+  {q:'Which of these is NOT a plant?', a:'Starfish', w:['Fern','Cactus','Rose']},
+  {q:'Plants and animals are both…', a:'Living things', w:['Rocks','Machines','Minerals']},
+  {q:'Unlike animals, most plants…', a:'Make their own food', w:['Can walk','Have bones','Eat meat']}
+];
+const ALL = [...PARTS, ...NEEDS, ...SEEDS, ...FOOD, ...POLLEN, ...PARTS_WE_EAT, ...AMAZING, ...TREES, ...PLANTORNOT];
+
+const CONFIG = {
+  slug:'plant-power', name:'Plant Power', masterTitle:'Master Gardener!',
+  cheers:['Blooming brilliant! 🌸','You got it! 🌱','Correct! 🌻','Growing strong! 🌳'],
+  confetti:['🎉','⭐','🌸','🍃'],
+  missions:[
+    {title:'Parts of a Plant', diff:'Easy', badge:'🥉', emoji:'🌱', gen:()=>fromBank(PARTS)},
+    {title:'What Plants Need', diff:'Easy', badge:'🥉', emoji:'💧', gen:()=>fromBank(NEEDS)},
+    {title:'Seed Adventure', diff:'Easy-Medium', badge:'🥈', emoji:'🌰', gen:()=>fromBank(SEEDS)},
+    {title:'Food Factory', diff:'Medium', badge:'🥈', emoji:'☀️', gen:()=>fromBank(FOOD)},
+    {title:'Busy Bees', diff:'Medium', badge:'🥈', emoji:'🐝', gen:()=>fromBank(POLLEN)},
+    {title:'Plants We Eat', diff:'Medium-Hard', badge:'🥇', emoji:'🥕', gen:()=>fromBank(PARTS_WE_EAT)},
+    {title:'Amazing Plants', diff:'Hard', badge:'🥇', emoji:'🌵', gen:()=>fromBank(AMAZING)},
+    {title:'Trees & Forests', diff:'Hard', badge:'🥇', emoji:'🌳', gen:()=>fromBank(TREES)},
+    {title:'Plant or Not?', diff:'Very Hard', badge:'💎', emoji:'🍄', gen:()=>fromBank(PLANTORNOT)},
+    {title:'Master Gardener', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>fromBank(ALL)}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

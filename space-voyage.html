@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Space Voyage – Solar System Game for Kids | Fundemics</title>
+<meta name="description" content="Free space science game for kids: the Sun, planets, the Moon, day and night, stars, astronauts, comets and galaxies in 10 missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ECEBFA; --bg-dark:#D2CFF2; --deep:#1D1A4A;
+    --accent:#5B55D6; --accent-dark:#3D37A8;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#E85D5D;
+    --glow1:rgba(91,85,214,0.25); --glow2:rgba(255,160,60,0.2);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Space <span>Voyage</span> 🚀</h1>
+    <div class="subtitle">10 missions &middot; sun, planets &amp; stars</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Blast off and explore the universe 🌌<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const SUN = [
+  {q:'The Sun is a…', a:'Star', w:['Planet','Moon','Comet'], e:'☀️'},
+  {q:'What is at the centre of our solar system?', a:'The Sun', w:['The Earth','The Moon','Jupiter']},
+  {q:'The Earth travels around the…', a:'Sun', w:['Moon','Mars','Stars'], e:'🌍'},
+  {q:'The Sun is mostly made of…', a:'Hot gases', w:['Rock','Ice','Water']},
+  {q:'The Sun gives the Earth light and…', a:'Heat', w:['Rain','Snow','Wind only']},
+  {q:'Sunlight takes about how long to reach Earth?', a:'8 minutes', w:['8 seconds','8 days','8 years']},
+  {q:'Why must you never look straight at the Sun?', a:'It can damage your eyes', w:['It makes you taller','It is too far away','It is cold']},
+  {q:'Plants need sunlight to…', a:'Make their food', w:['Sleep','Swim','Fly'], e:'🌱'},
+  {q:'The Sun rises in the…', a:'East', w:['West','North','South'], e:'🌅'},
+  {q:'The Sun sets in the…', a:'West', w:['East','North','South'], e:'🌇'},
+  {q:'Compared to Earth, the Sun is…', a:'Much bigger', w:['Much smaller','The same size','A little smaller']}
+];
+const ORDER = [
+  {q:'Which planet is closest to the Sun?', a:'Mercury', w:['Venus','Earth','Mars']},
+  {q:'Which planet is second from the Sun?', a:'Venus', w:['Mercury','Earth','Mars']},
+  {q:'Which planet is third from the Sun?', a:'Earth', w:['Venus','Mars','Jupiter'], e:'🌍'},
+  {q:'Which planet is fourth from the Sun?', a:'Mars', w:['Earth','Jupiter','Venus']},
+  {q:'Which planet is fifth from the Sun?', a:'Jupiter', w:['Saturn','Mars','Uranus']},
+  {q:'Which planet is sixth from the Sun?', a:'Saturn', w:['Jupiter','Uranus','Neptune'], e:'🪐'},
+  {q:'Which planet is seventh from the Sun?', a:'Uranus', w:['Neptune','Saturn','Jupiter']},
+  {q:'Which planet is farthest from the Sun?', a:'Neptune', w:['Uranus','Saturn','Mercury']},
+  {q:'How many planets are in our solar system?', a:'8', w:['7','9','10']},
+  {q:'Pluto is now called a…', a:'Dwarf planet', w:['Star','Moon','Comet']},
+  {q:'Which list is in the right order from the Sun?', a:'Mercury, Venus, Earth, Mars', w:['Earth, Mars, Venus, Mercury','Venus, Mercury, Mars, Earth','Mars, Earth, Venus, Mercury']}
+];
+const PLANETS = [
+  {q:'Which is the largest planet?', a:'Jupiter', w:['Saturn','Earth','Neptune']},
+  {q:'Which is the smallest planet?', a:'Mercury', w:['Mars','Venus','Earth']},
+  {q:'Which planet is called the Red Planet?', a:'Mars', w:['Venus','Jupiter','Mercury'], e:'🔴'},
+  {q:'Which planet is famous for its bright rings?', a:'Saturn', w:['Mars','Earth','Mercury'], e:'🪐'},
+  {q:'Which is the hottest planet?', a:'Venus', w:['Mercury','Mars','Jupiter'], e:'🔥'},
+  {q:'Which planet do we live on?', a:'Earth', w:['Mars','Venus','Saturn'], e:'🌍'},
+  {q:'Which planet spins tipped over on its side?', a:'Uranus', w:['Earth','Mars','Mercury']},
+  {q:'Jupiter\'s Great Red Spot is a giant…', a:'Storm', w:['Volcano','Ocean','Crater']},
+  {q:'Which planet is the only one known to have life?', a:'Earth', w:['Mars','Jupiter','Venus']},
+  {q:'Which planet has the strongest winds?', a:'Neptune', w:['Earth','Mercury','Mars']},
+  {q:'Jupiter, Saturn, Uranus and Neptune are mostly made of…', a:'Gas and ice', w:['Solid rock','Water only','Metal only']}
+];
+const MOON = [
+  {q:'How many moons does Earth have?', a:'1', w:['2','0','4'], e:'🌙'},
+  {q:'The Moon shines because it…', a:'Reflects sunlight', w:['Makes its own light','Is on fire','Has lamps']},
+  {q:'Who was the first person to walk on the Moon?', a:'Neil Armstrong', w:['Yuri Gagarin','Isaac Newton','Albert Einstein'], e:'👨‍🚀'},
+  {q:'In which year did people first land on the Moon?', a:'1969', w:['1929','1999','2009']},
+  {q:'When we can see the whole bright face of the Moon, it is a…', a:'Full moon', w:['New moon','Half moon','Blue moon'], e:'🌕'},
+  {q:'The Moon goes around the Earth in about…', a:'One month', w:['One day','One year','One hour']},
+  {q:'The bowl-shaped holes on the Moon are called…', a:'Craters', w:['Oceans','Volcanoes','Rivers']},
+  {q:'Is there air to breathe on the Moon?', a:'No', w:['Yes','Only at night','Only in summer']},
+  {q:'The Moon\'s pull on Earth\'s oceans causes…', a:'Tides', w:['Rain','Earthquakes','Wind']},
+  {q:'The changing shapes of the Moon we see are called…', a:'Phases', w:['Orbits','Seasons','Eclipses'], e:'🌓'},
+  {q:'Compared to Earth, the Moon is…', a:'Smaller', w:['Bigger','The same size','Hotter']}
+];
+const DAYNIGHT = [
+  {q:'What causes day and night?', a:'The Earth spinning', w:['The Sun switching off','The Moon blocking the Sun','Clouds']},
+  {q:'How long does the Earth take to spin once?', a:'24 hours', w:['12 hours','7 days','365 days']},
+  {q:'How long does the Earth take to go around the Sun?', a:'365 days (1 year)', w:['24 hours','30 days','10 years']},
+  {q:'A leap year has how many days?', a:'366', w:['365','360','400']},
+  {q:'The imaginary line the Earth spins around is its…', a:'Axis', w:['Orbit','Equator','Atmosphere']},
+  {q:'Seasons happen because the Earth is…', a:'Tilted', w:['Flat','Square','Not moving']},
+  {q:'The path the Earth takes around the Sun is its…', a:'Orbit', w:['Axis','Crater','Tail']},
+  {q:'When it is day on one side of the Earth, the other side has…', a:'Night', w:['Day too','Rain','Snow'], e:'🌃'},
+  {q:'Our shadows are shortest at about…', a:'Midday', w:['Sunrise','Sunset','Midnight']},
+  {q:'The layer of air around the Earth is called the…', a:'Atmosphere', w:['Orbit','Crust','Axis']}
+];
+const STARS = [
+  {q:'What is the closest star to Earth?', a:'The Sun', w:['The North Star','The Moon','Sirius']},
+  {q:'A group of stars that makes a picture or pattern is called a…', a:'Constellation', w:['Galaxy','Planet','Comet'], e:'✨'},
+  {q:'Which star helps travellers find north?', a:'The North Star (Polaris)', w:['The Sun','Sirius','The Moon']},
+  {q:'A "shooting star" is really a…', a:'Meteor', w:['Planet','Moon','Rocket'], e:'🌠'},
+  {q:'Why do stars seem to twinkle?', a:'Their light passes through moving air', w:['They blink on and off','They are spinning fast','They are made of glitter']},
+  {q:'Stars look tiny because they are…', a:'Very far away', w:['Very small','Very cold','Very close']},
+  {q:'Our galaxy is called the…', a:'Milky Way', w:['Andromeda','Big Dipper','Solar Way'], e:'🌌'},
+  {q:'Why can\'t we see stars during the day?', a:'The Sun is too bright', w:['Stars go to sleep','Stars move away','Clouds eat them']},
+  {q:'The Big Dipper is part of which constellation?', a:'The Great Bear (Ursa Major)', w:['Orion','Leo','Scorpius']},
+  {q:'Very hot stars glow…', a:'Blue-white', w:['Red','Brown','Black']}
+];
+const ASTRO = [
+  {q:'A person trained to travel into space is an…', a:'Astronaut', w:['Astronomer','Architect','Artist'], e:'👩‍🚀'},
+  {q:'Who was the first person to travel into space?', a:'Yuri Gagarin', w:['Neil Armstrong','Buzz Aldrin','Galileo']},
+  {q:'The spaceflight that first landed people on the Moon was…', a:'Apollo 11', w:['Voyager 1','Sputnik','Hubble']},
+  {q:'What does ISS stand for?', a:'International Space Station', w:['Indian Star Ship','Inner Solar System','Ice Space Shuttle'], e:'🛰️'},
+  {q:'Why do astronauts float inside the space station?', a:'They are in free fall (weightless)', w:['They are wearing balloons','There is wind','They are very light people']},
+  {q:'Why do astronauts wear spacesuits outside?', a:'To breathe and stay safe', w:['To look nice','To swim','To run faster']},
+  {q:'What carries astronauts into space?', a:'A rocket', w:['An aeroplane','A hot-air balloon','A helicopter'], e:'🚀'},
+  {q:'A scientist who studies stars and planets is an…', a:'Astronomer', w:['Astronaut','Astrologer','Architect'], e:'🔭'},
+  {q:'The US space agency is called…', a:'NASA', w:['FIFA','UNICEF','NATO']},
+  {q:'A machine that goes around a planet, like weather or TV machines, is a…', a:'Satellite', w:['Comet','Meteor','Star'], e:'🛰️'}
+];
+const ROCKS = [
+  {q:'The big ring of space rocks between Mars and Jupiter is the…', a:'Asteroid belt', w:['Milky Way','Kuiper cloud','Ring of Saturn']},
+  {q:'A ball of ice and dust with a long glowing tail is a…', a:'Comet', w:['Asteroid','Planet','Moon'], e:'☄️'},
+  {q:'A space rock that burns up in our air is a…', a:'Meteor', w:['Comet','Satellite','Planet'], e:'🌠'},
+  {q:'A space rock that lands on Earth is a…', a:'Meteorite', w:['Meteor','Comet','Nebula']},
+  {q:'What makes craters on the Moon?', a:'Space rocks crashing into it', w:['Rivers','Astronauts digging','Earthquakes']},
+  {q:'A famous comet that comes back about every 76 years is…', a:'Halley\'s Comet', w:['Newton\'s Comet','Mars Comet','Big Dipper']},
+  {q:'Asteroids are mostly made of…', a:'Rock and metal', w:['Gas','Water','Fire']},
+  {q:'When Earth passes through lots of meteors at once, we see a…', a:'Meteor shower', w:['Solar eclipse','Full moon','Rainbow']},
+  {q:'A comet\'s tail always points…', a:'Away from the Sun', w:['Towards the Sun','Towards Earth','Down']},
+  {q:'Ceres is the largest object in the…', a:'Asteroid belt', w:['Sun','Milky Way centre','Moon']}
+];
+const BEYOND = [
+  {q:'The galaxy we live in is the…', a:'Milky Way', w:['Andromeda','Sombrero','Whirlpool']},
+  {q:'The nearest big galaxy to ours is…', a:'Andromeda', w:['Orion','Saturn','Pluto']},
+  {q:'A light-year measures…', a:'Distance', w:['Time','Weight','Temperature']},
+  {q:'What keeps the planets moving around the Sun?', a:'Gravity', w:['Wind','Magnets','Rockets']},
+  {q:'A place in space where gravity is so strong not even light escapes is a…', a:'Black hole', w:['Comet','Nebula','Moon']},
+  {q:'A famous telescope that orbits the Earth is the…', a:'Hubble Space Telescope', w:['Apollo Telescope','Mars Telescope','Moon Lens'], e:'🔭'},
+  {q:'A giant cloud of gas and dust where stars are born is a…', a:'Nebula', w:['Black hole','Planet','Asteroid']},
+  {q:'Everything that exists, including all galaxies, is called the…', a:'Universe', w:['Solar system','Atmosphere','Orbit']},
+  {q:'What shape is the Milky Way?', a:'Spiral', w:['Square','Triangle','Straight line'], e:'🌀'},
+  {q:'Our solar system is made of the Sun and everything that…', a:'Orbits it', w:['Lives on Earth','Is in the ocean','Glows at night']}
+];
+const ALL = [...SUN, ...ORDER, ...PLANETS, ...MOON, ...DAYNIGHT, ...STARS, ...ASTRO, ...ROCKS, ...BEYOND];
+
+const CONFIG = {
+  slug:'space-voyage', name:'Space Voyage', masterTitle:'Space Commander!',
+  cheers:['Out of this world! 🚀','You got it! 🌟','Correct! 🪐','Stellar! ✨'],
+  confetti:['🎉','⭐','🚀','🪐'],
+  missions:[
+    {title:'Our Sun', diff:'Easy', badge:'🥉', emoji:'☀️', gen:()=>fromBank(SUN)},
+    {title:'Planet Parade', diff:'Easy', badge:'🥉', emoji:'🪐', gen:()=>fromBank(ORDER)},
+    {title:'Planet Facts', diff:'Easy-Medium', badge:'🥈', emoji:'🔴', gen:()=>fromBank(PLANETS)},
+    {title:'Moon Landing', diff:'Medium', badge:'🥈', emoji:'🌙', gen:()=>fromBank(MOON)},
+    {title:'Day, Night & Seasons', diff:'Medium', badge:'🥈', emoji:'🌗', gen:()=>fromBank(DAYNIGHT)},
+    {title:'Star Gazing', diff:'Medium-Hard', badge:'🥇', emoji:'✨', gen:()=>fromBank(STARS)},
+    {title:'Astronaut Academy', diff:'Hard', badge:'🥇', emoji:'👩‍🚀', gen:()=>fromBank(ASTRO)},
+    {title:'Comets & Asteroids', diff:'Hard', badge:'🥇', emoji:'☄️', gen:()=>fromBank(ROCKS)},
+    {title:'Galaxies & Beyond', diff:'Very Hard', badge:'💎', emoji:'🌌', gen:()=>fromBank(BEYOND)},
+    {title:'Captain of the Cosmos', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>fromBank(ALL)}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>

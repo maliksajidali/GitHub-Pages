@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Shape Island – Geometry Game for Kids | Fundemics</title>
+<meta name="description" content="Free shapes and geometry game for kids: 2D and 3D shapes, sides, corners, perimeter, area, angles and symmetry in 10 island missions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E6F7F5; --bg-dark:#C4EAE5; --deep:#123B3A;
+    --accent:#1FA39A; --accent-dark:#157A73;
+    --sun:#FFD447; --sun-dark:#E8A317; --coral:#E85D5D;
+    --glow1:rgba(31,163,154,0.22); --glow2:rgba(255,212,71,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, var(--glow1), transparent 40%),
+      radial-gradient(circle at 85% 90%, var(--glow2), transparent 45%),
+      var(--bg);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; color:var(--deep); overflow-x:hidden;
+  }
+  .app{width:100%; max-width:560px;}
+  .header{text-align:center; margin-bottom:16px;}
+  .title{font-family:'Fredoka', sans-serif; font-weight:700; font-size:clamp(26px,7vw,36px); margin:0;}
+  .title span{color:var(--accent-dark);}
+  .subtitle{font-size:13px; font-weight:700; color:var(--accent-dark); opacity:0.8; text-transform:uppercase; letter-spacing:1.5px; margin-top:4px;}
+  .card{background:#fff; border-radius:26px; padding:24px; border:3px solid var(--deep); box-shadow:0 6px 0 rgba(0,0,0,0.15); min-height:380px; display:flex; flex-direction:column;}
+  .map-grid{display:flex; flex-direction:column; gap:10px;}
+  .mission-row{display:flex; align-items:center; gap:14px; background:var(--bg); border:3px solid var(--deep); border-radius:18px; padding:12px 14px; cursor:pointer;}
+  .mission-row.locked{opacity:0.55; cursor:not-allowed;}
+  .mission-row:not(.locked):active{transform:scale(0.98);}
+  .mission-num{font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .mission-row.locked .mission-num{background:#B0B0B0;}
+  .mission-row.done .mission-num{background:var(--sun-dark);}
+  .mission-info{flex:1;}
+  .mission-title{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px;}
+  .mission-diff{font-size:11px; font-weight:700; color:var(--accent-dark); opacity:0.75; text-transform:uppercase;}
+  .mission-badge{font-size:26px;}
+  .stars-row{font-size:13px; margin-top:2px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .stop-label{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; color:#fff; background:var(--accent-dark); display:inline-block; padding:5px 14px; border-radius:20px;}
+  .back-link{font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600; background:none; border:2px solid var(--deep); color:var(--deep); border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .progress-dots{display:flex; gap:5px; margin-bottom:16px; flex-wrap:wrap;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--bg-dark); border:2px solid var(--deep);}
+  .dot.filled{background:var(--accent);}
+  .dot.wrong{background:var(--coral);}
+  .word-emoji{font-size:44px; text-align:center; margin-bottom:6px;}
+  .visual{display:flex; justify-content:center; margin-bottom:8px;}
+  .visual svg{max-width:100%; height:auto;}
+  .question{font-family:'Fredoka',sans-serif; font-size:clamp(17px,4.6vw,21px); font-weight:600; text-align:center; margin:6px 0 22px 0; line-height:1.4;}
+  .blank{color:var(--coral); font-weight:700;}
+  .options{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:auto;}
+  .options.long{grid-template-columns:1fr;}
+  .opt{font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; padding:14px 8px; border-radius:16px; border:3px solid var(--deep); background:var(--bg); color:var(--deep); cursor:pointer; box-shadow:0 4px 0 var(--deep); transition:transform 0.08s, box-shadow 0.08s, background 0.2s;}
+  .opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--deep);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:var(--accent); color:#fff; animation:pop 0.35s ease;}
+  .opt.wrong{background:var(--coral); color:#fff; animation:shake 0.35s ease;}
+  .opt.dim{opacity:0.45;}
+  @keyframes pop{0%{transform:scale(1);} 40%{transform:scale(1.08);} 100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .feedback{text-align:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; min-height:22px; margin-top:14px; color:var(--accent-dark);}
+  .end{text-align:center; padding:14px 0; margin:auto;}
+  .end-emoji{font-size:64px; margin-bottom:10px;}
+  .end-title{font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; margin:0 0 6px 0;}
+  .end-sub{font-size:14px; color:var(--accent-dark); margin-bottom:18px; font-weight:700;}
+  .stars-big{font-size:30px; margin-bottom:14px;}
+  .btn-primary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; background:var(--sun); color:var(--deep); border:3px solid var(--deep); padding:13px 26px; border-radius:18px; cursor:pointer; box-shadow:0 5px 0 var(--sun-dark); margin:4px;}
+  .btn-primary:active{transform:translateY(4px); box-shadow:0 1px 0 var(--sun-dark);}
+  .btn-secondary{font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#fff; color:var(--deep); border:3px solid var(--deep); padding:12px 22px; border-radius:18px; cursor:pointer; margin:4px;}
+  .badge-shelf{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0;}
+  .badge-shelf span{font-size:22px;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti span{position:absolute; top:-20px; font-size:20px; animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:0.9;}}
+  footer{text-align:center; margin-top:14px; font-size:12px; color:var(--accent-dark); opacity:0.75; font-weight:700; line-height:1.8;}
+  footer a{color:var(--accent-dark);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001s !important; transition-duration:0.001s !important;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1 class="title">Shape <span>Island</span> 🏝️</h1>
+    <div class="subtitle">10 missions &middot; shapes &amp; geometry</div>
+  </div>
+  <div class="card" id="gameCard"></div>
+  <footer>Explore every corner of Shape Island 🔷<br><a href="https://fundemics.blogspot.com/p/all-games.html" target="_top">More free games at Fundemics</a></footer>
+</div>
+<script>
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function repeatGen(fn, n){ const out=[]; const seen=new Set(); let guard=0; while(out.length<(n||10) && guard++<500){ const q=fn(); const key=q.q+'|'+q.a+'|'+(q.svg||''); if(seen.has(key)) continue; seen.add(key); out.push(q); } return out; }
+function numOpts(ans, extra){
+  const s = new Set([String(ans)]);
+  (extra||[]).forEach(v=>{ if(s.size<4 && v>=0 && v!==ans) s.add(String(v)); });
+  let guard=0;
+  while(s.size<4 && guard++<200){ const v = ans + rnd(1,5)*(Math.random()<0.5?-1:1); if(v>=0) s.add(String(v)); }
+  let k=6; while(s.size<4) s.add(String(ans+(k++)));
+  return shuffle([...s]);
+}
+function fromBank(bank, n){
+  return shuffle(bank).slice(0, n||10).map(x=>({ q:x.q, a:x.a, opts:shuffle([x.a, ...x.w]), emoji:x.e }));
+}
+
+const B = '<span class="blank">?</span>';
+function svgWrap(inner){ return `<svg viewBox="0 0 160 124" width="170" height="132"><g fill="#FFD447" stroke="#123B3A" stroke-width="4" stroke-linejoin="round">${inner}</g></svg>`; }
+function regPts(n, r, rot){ const pts=[]; for(let i=0;i<n;i++){ const t=(rot||-90)*Math.PI/180 + i*2*Math.PI/n; pts.push((80+r*Math.cos(t)).toFixed(1)+','+(64+r*Math.sin(t)).toFixed(1)); } return pts.join(' '); }
+const SHAPES = [
+  {name:'Circle', sides:0, svg:'<circle cx="80" cy="64" r="48"/>'},
+  {name:'Triangle', sides:3, svg:`<polygon points="${regPts(3,54)}"/>`},
+  {name:'Square', sides:4, svg:'<rect x="34" y="18" width="92" height="92"/>'},
+  {name:'Rectangle', sides:4, svg:'<rect x="14" y="30" width="132" height="68"/>'},
+  {name:'Pentagon', sides:5, svg:`<polygon points="${regPts(5,52)}"/>`},
+  {name:'Hexagon', sides:6, svg:`<polygon points="${regPts(6,52,0)}"/>`},
+  {name:'Octagon', sides:8, svg:`<polygon points="${regPts(8,52,22.5)}"/>`},
+  {name:'Oval', sides:0, svg:'<ellipse cx="80" cy="64" rx="66" ry="40"/>'},
+  {name:'Rhombus', sides:4, svg:'<polygon points="80,6 122,64 80,122 38,64"/>'},
+  {name:'Trapezium', sides:4, svg:'<polygon points="46,24 114,24 150,104 10,104"/>'},
+  {name:'Semicircle', sides:1, svg:'<path d="M 16 92 A 64 64 0 0 1 144 92 Z"/>'}
+];
+function nameShapeQ(){
+  const s = pickRandom(SHAPES);
+  const wrong = shuffle(SHAPES.filter(x=>x.name!==s.name)).slice(0,3).map(x=>x.name);
+  return {q:'What is the name of this shape?', a:s.name, opts:shuffle([s.name,...wrong]), svg:svgWrap(s.svg)};
+}
+function countSidesQ(){
+  const s = pickRandom(SHAPES.filter(x=>x.sides>=3));
+  return {q:'How many straight sides does this shape have?', a:String(s.sides), opts:numOpts(s.sides,[s.sides+1,s.sides-1,s.sides+2]), svg:svgWrap(s.svg)};
+}
+const CORNERS = [
+  {q:'How many corners (vertices) does a triangle have?', a:'3', w:['4','2','5']},
+  {q:'How many corners does a square have?', a:'4', w:['3','5','6']},
+  {q:'How many corners does a pentagon have?', a:'5', w:['4','6','8']},
+  {q:'How many corners does a hexagon have?', a:'6', w:['5','8','4']},
+  {q:'How many corners does an octagon have?', a:'8', w:['6','7','10']},
+  {q:'How many corners does a circle have?', a:'0', w:['1','2','4']},
+  {q:'How many corners does a rectangle have?', a:'4', w:['2','3','6']},
+  {q:'A stop sign is shaped like an octagon. How many sides does it have?', a:'8', w:['6','7','5'], e:'🛑'},
+  {q:'Which shape has 5 sides and 5 corners?', a:'Pentagon', w:['Hexagon','Octagon','Square']},
+  {q:'Which shape has 6 sides?', a:'Hexagon', w:['Pentagon','Octagon','Rectangle'], e:'🐝'},
+  {q:'Which shape has no corners and no straight sides?', a:'Circle', w:['Square','Triangle','Rhombus']},
+  {q:'Which shape has 4 equal sides and 4 square corners?', a:'Square', w:['Rectangle','Rhombus','Trapezium']}
+];
+const SOLIDS = [
+  {q:'A football is shaped like a…', a:'Sphere', w:['Cube','Cone','Cylinder'], e:'⚽'},
+  {q:'A dice is shaped like a…', a:'Cube', w:['Sphere','Cylinder','Pyramid'], e:'🎲'},
+  {q:'An ice-cream cone is shaped like a…', a:'Cone', w:['Cylinder','Cube','Sphere'], e:'🍦'},
+  {q:'A tin can is shaped like a…', a:'Cylinder', w:['Cone','Cube','Pyramid'], e:'🥫'},
+  {q:'A cereal box is shaped like a…', a:'Cuboid', w:['Cube','Cylinder','Sphere'], e:'📦'},
+  {q:'The famous monuments in Egypt are shaped like a…', a:'Pyramid', w:['Cone','Cuboid','Sphere'], e:'🏜️'},
+  {q:'A party hat is shaped like a…', a:'Cone', w:['Pyramid','Cylinder','Sphere'], e:'🥳'},
+  {q:'An orange is shaped roughly like a…', a:'Sphere', w:['Cylinder','Cube','Cone'], e:'🍊'},
+  {q:'A candle is often shaped like a…', a:'Cylinder', w:['Cube','Sphere','Pyramid'], e:'🕯️'},
+  {q:'A brick is shaped like a…', a:'Cuboid', w:['Cube','Pyramid','Cone'], e:'🧱'},
+  {q:'Which 3D shape can roll and has no flat faces?', a:'Sphere', w:['Cylinder','Cone','Cube']},
+  {q:'Which 3D shape has 6 square faces?', a:'Cube', w:['Cuboid','Pyramid','Cylinder']}
+];
+const FEV = [
+  {q:'How many faces does a cube have?', a:'6', w:['4','8','12']},
+  {q:'How many edges does a cube have?', a:'12', w:['6','8','10']},
+  {q:'How many vertices (corners) does a cube have?', a:'8', w:['6','12','4']},
+  {q:'How many faces does a cuboid have?', a:'6', w:['4','5','8']},
+  {q:'How many flat faces does a cylinder have?', a:'2', w:['1','3','0']},
+  {q:'How many vertices does a cone have?', a:'1', w:['0','2','3']},
+  {q:'How many faces does a square-based pyramid have?', a:'5', w:['4','6','8']},
+  {q:'How many vertices does a square-based pyramid have?', a:'5', w:['4','6','8']},
+  {q:'How many edges does a square-based pyramid have?', a:'8', w:['5','6','12']},
+  {q:'How many edges does a sphere have?', a:'0', w:['1','2','4']},
+  {q:'How many faces does a triangular prism have?', a:'5', w:['3','6','4']},
+  {q:'How many vertices does a triangular prism have?', a:'6', w:['5','8','3']}
+];
+function perimeterQ(){
+  if(Math.random()<0.4){ const s=rnd(2,12), p=4*s; return {q:`A square has sides of ${s} cm. What is its perimeter?`, a:p+' cm', opts:shuffle([p,s*s===p?p+4:s*s,2*s,p+4].map(v=>v+' cm')).filter((v,i,a)=>a.indexOf(v)===i), svg:svgWrap('<rect x="34" y="18" width="92" height="92"/>')}; }
+  const l=rnd(3,15), w=rnd(2,l-1), p=2*(l+w);
+  return {q:`A rectangle is ${l} cm long and ${w} cm wide. What is its perimeter?`, a:p+' cm', opts:numOpts(p,[l+w,l*w===p?p+2:l*w,p+2]).map(v=>v+' cm'), svg:svgWrap('<rect x="14" y="30" width="132" height="68"/>')};
+}
+function areaQ(){
+  if(Math.random()<0.4){ const s=rnd(2,10), ar=s*s; return {q:`A square has sides of ${s} cm. What is its area?`, a:ar+' sq cm', opts:numOpts(ar,[4*s===ar?ar+4:4*s,2*s,ar+s]).map(v=>v+' sq cm'), svg:svgWrap('<rect x="34" y="18" width="92" height="92"/>')}; }
+  const l=rnd(3,12), w=rnd(2,9), ar=l*w;
+  return {q:`A rectangle is ${l} cm long and ${w} cm wide. What is its area?`, a:ar+' sq cm', opts:numOpts(ar,[2*(l+w)===ar?ar+2:2*(l+w),l+w,ar+l]).map(v=>v+' sq cm'), svg:svgWrap('<rect x="14" y="30" width="132" height="68"/>')};
+}
+const ANGLES = [
+  {q:'How many degrees are in a right angle?', a:'90°', w:['45°','180°','360°'], e:'📐'},
+  {q:'How many degrees are in a straight line?', a:'180°', w:['90°','360°','100°']},
+  {q:'How many degrees are in a full turn?', a:'360°', w:['180°','90°','270°'], e:'🔄'},
+  {q:'An angle smaller than a right angle is called…', a:'Acute', w:['Obtuse','Straight','Reflex']},
+  {q:'An angle between 90° and 180° is called…', a:'Obtuse', w:['Acute','Right','Straight']},
+  {q:'The corner of a book is an example of a…', a:'Right angle', w:['Acute angle','Obtuse angle','Straight angle'], e:'📘'},
+  {q:'The angles inside any triangle add up to…', a:'180°', w:['90°','360°','270°'], e:'🔺'},
+  {q:'The angles inside a square add up to…', a:'360°', w:['180°','90°','400°']},
+  {q:'A half turn is the same as…', a:'180°', w:['90°','360°','45°']},
+  {q:'A quarter turn is the same as…', a:'90°', w:['45°','180°','60°']}
+];
+function triAngleQ(){ const a=rnd(30,80), b=rnd(30,100-a+30), c=180-a-b; if(c<10) return triAngleQ(); return {q:`Two angles of a triangle are ${a}° and ${b}°. What is the third angle?`, a:c+'°', opts:numOpts(c,[c+10,c-10,360-a-b]).map(v=>v+'°'), emoji:'🔺'}; }
+const SYMMETRY = [
+  {q:'How many lines of symmetry does a square have?', a:'4', w:['2','1','8']},
+  {q:'How many lines of symmetry does a rectangle have?', a:'2', w:['4','1','0']},
+  {q:'How many lines of symmetry does an equilateral triangle have?', a:'3', w:['1','2','6']},
+  {q:'How many lines of symmetry does a regular hexagon have?', a:'6', w:['3','4','8']},
+  {q:'How many lines of symmetry does a regular pentagon have?', a:'5', w:['2','3','10']},
+  {q:'How many lines of symmetry does a circle have?', a:'Infinitely many', w:['1','2','4']},
+  {q:'How many lines of symmetry does the capital letter A have?', a:'1', w:['0','2','3']},
+  {q:'How many lines of symmetry does the capital letter H have?', a:'2', w:['1','0','4']},
+  {q:'How many lines of symmetry does the capital letter F have?', a:'0', w:['1','2','3']},
+  {q:'Which capital letter has exactly one line of symmetry?', a:'M', w:['F','G','R']},
+  {q:'A butterfly is a good example of…', a:'Symmetry', w:['Perimeter','Area','Volume'], e:'🦋'}
+];
+const MIXED = [...CORNERS, ...SOLIDS, ...FEV, ...ANGLES, ...SYMMETRY];
+
+const CONFIG = {
+  slug:'shape-island', name:'Shape Island', masterTitle:'Shape Island Master!',
+  cheers:['Great job! 🎉','Sharp thinking! 🔷','Correct! 🏝️','You got it! ⭐'],
+  confetti:['🎉','⭐','🔷','🔺'],
+  missions:[
+    {title:'Name That Shape', diff:'Easy', badge:'🥉', emoji:'🔷', gen:()=>repeatGen(nameShapeQ, 8)},
+    {title:'Count the Sides', diff:'Easy', badge:'🥉', emoji:'✏️', gen:()=>repeatGen(countSidesQ, 8)},
+    {title:'Corner Cove', diff:'Easy-Medium', badge:'🥈', emoji:'📐', gen:()=>fromBank(CORNERS)},
+    {title:'3D Treasure Hunt', diff:'Medium', badge:'🥈', emoji:'🎲', gen:()=>fromBank(SOLIDS)},
+    {title:'Faces, Edges & Corners', diff:'Medium', badge:'🥈', emoji:'🧊', gen:()=>fromBank(FEV)},
+    {title:'Perimeter Path', diff:'Medium-Hard', badge:'🥇', emoji:'🚶', gen:()=>repeatGen(perimeterQ)},
+    {title:'Area Garden', diff:'Hard', badge:'🥇', emoji:'🌱', gen:()=>repeatGen(areaQ)},
+    {title:'Angle Lookout', diff:'Hard', badge:'🥇', emoji:'🔭', gen:()=>fromBank(ANGLES,7).concat(repeatGen(triAngleQ,3))},
+    {title:'Symmetry Lagoon', diff:'Very Hard', badge:'💎', emoji:'🦋', gen:()=>fromBank(SYMMETRY)},
+    {title:'Shape Master Summit', diff:'Expert', badge:'👑', emoji:'👑', gen:()=>shuffle(fromBank(MIXED,6).concat([perimeterQ(),areaQ(),nameShapeQ(),triAngleQ()]))}
+  ]
+};
+</script>
+<script>
+const missions = CONFIG.missions;
+const STORE_KEY = 'fundemics-' + CONFIG.slug;
+function freshProgress(){ const p = missions.map(()=>({unlocked:false, done:false, stars:0})); p[0].unlocked = true; return p; }
+function loadProgress(){
+  try{ const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(saved) && saved.length===missions.length) return saved; }catch(e){}
+  return freshProgress();
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+let progress = loadProgress();
+let session = null;
+const card = document.getElementById('gameCard');
+
+function renderMap(){
+  const doneCount = progress.filter(p=>p.done).length;
+  let html = `<div class="map-grid">`;
+  missions.forEach((m,i)=>{
+    const p = progress[i];
+    const cls = p.done ? 'done' : (p.unlocked ? '' : 'locked');
+    const icon = p.done ? m.badge : (p.unlocked ? m.emoji : '🔒');
+    const stars = p.done ? '⭐'.repeat(p.stars) + '☆'.repeat(3-p.stars) : '';
+    html += `
+      <div class="mission-row ${cls}" onclick="${p.unlocked ? `startMission(${i})` : ''}">
+        <div class="mission-num">${i+1}</div>
+        <div class="mission-info">
+          <div class="mission-title">${m.title}</div>
+          <div class="mission-diff">${m.diff}</div>
+          ${stars ? `<div class="stars-row">${stars}</div>` : ''}
+        </div>
+        <div class="mission-badge">${icon}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  if(doneCount === missions.length){
+    html += `<button class="btn-primary" style="margin-top:16px;" onclick="renderTrophy()">See Your Grand Trophy 🏆</button>`;
+  }
+  card.innerHTML = html;
+}
+
+function startMission(i){
+  session = { missionIdx:i, qIdx:0, correctCount:0, wrongDots:[], questions: missions[i].gen() };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const m = missions[session.missionIdx];
+  if(session.qIdx >= session.questions.length){ renderMissionComplete(); return; }
+  const q = session.questions[session.qIdx];
+  let dots = '';
+  for(let i=0;i<session.questions.length;i++){
+    let cls = 'dot';
+    if(i < session.qIdx) cls += session.wrongDots[i] ? ' wrong' : ' filled';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const top = q.svg ? `<div class="visual">${q.svg}</div>` : `<div class="word-emoji">${q.emoji || m.emoji}</div>`;
+  const long = q.opts.some(o=>String(o).length>16);
+  card.innerHTML = `
+    <div class="topbar">
+      <div class="stop-label">MISSION ${session.missionIdx+1} — ${session.qIdx+1}/${session.questions.length}</div>
+      <button class="back-link" onclick="renderMap()">✕ Map</button>
+    </div>
+    <div class="progress-dots">${dots}</div>
+    ${top}
+    <div class="question">${q.q}</div>
+    <div class="options${long?' long':''}" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  const wrap = document.getElementById('optionsWrap');
+  q.opts.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(String(opt), String(q.a), btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function handleAnswer(selected, correct, btnEl, q){
+  const buttons = document.querySelectorAll('.opt');
+  if(buttons[0].disabled) return;
+  const feedback = document.getElementById('feedback');
+  const isCorrect = selected === correct;
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === correct) b.classList.add('correct');
+    else if(b === btnEl) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if(isCorrect){
+    session.correctCount++;
+    session.wrongDots[session.qIdx] = false;
+    feedback.textContent = pickRandom(CONFIG.cheers);
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent-dark');
+    burstConfetti();
+  } else {
+    session.wrongDots[session.qIdx] = true;
+    feedback.textContent = `Correct answer: ${correct}` + (q.why ? ` — ${q.why}` : '');
+    feedback.style.color = getComputedStyle(document.documentElement).getPropertyValue('--coral');
+  }
+  setTimeout(()=>{ session.qIdx++; renderQuestion(); }, isCorrect ? 1100 : 2000);
+}
+
+function renderMissionComplete(){
+  const i = session.missionIdx;
+  const m = missions[i];
+  const score = session.correctCount;
+  const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
+  progress[i].done = true;
+  progress[i].stars = Math.max(progress[i].stars, stars);
+  if(i+1 < missions.length) progress[i+1].unlocked = true;
+  saveProgress();
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">${m.badge}</div>
+      <div class="end-title">${m.title} Complete!</div>
+      <div class="end-sub">You got ${score} out of ${session.questions.length} correct</div>
+      <div class="stars-big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div>
+        <button class="btn-primary" onclick="renderMap()">Back to Map</button>
+        ${i+1 < missions.length ? `<button class="btn-secondary" onclick="startMission(${i+1})">Next Mission →</button>` : ''}
+      </div>
+    </div>`;
+  bigConfetti();
+}
+
+function renderTrophy(){
+  const badgeList = missions.map(m=>m.badge).join(' ');
+  card.innerHTML = `
+    <div class="end">
+      <div class="end-emoji">🏆</div>
+      <div class="end-title">${CONFIG.masterTitle}</div>
+      <div class="end-sub">You completed all ${missions.length} missions of ${CONFIG.name}</div>
+      <div class="badge-shelf"><span>${badgeList}</span></div>
+      <button class="btn-primary" onclick="resetAll()">Play Again From Start 🔁</button>
+    </div>`;
+  bigConfetti();
+}
+function resetAll(){ progress = freshProgress(); saveProgress(); renderMap(); }
+
+function burstConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  for(let i=0;i<10;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(CONFIG.confetti);
+    s.style.left = (40 + Math.random()*20) + "%";
+    s.style.animationDuration = (1 + Math.random()*0.6) + "s";
+    s.style.fontSize = (14 + Math.random()*10) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 1600);
+}
+function bigConfetti(){
+  const layer = document.createElement('div'); layer.className = 'confetti';
+  const emojis = CONFIG.confetti.concat(['🏆','🌟']);
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.textContent = pickRandom(emojis);
+    s.style.left = Math.random()*100 + "%";
+    s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+    s.style.fontSize = (14 + Math.random()*14) + "px";
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+renderMap();
+</script>
+</body>
+</html>
